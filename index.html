@@ -1,0 +1,3069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BD Tour - Gaming Tournament Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --bg-body: #F5F8FF;
+      --bg-card: #FFFFFF;
+      --bg-surface: #EEF3FC;
+      --primary: #1565C0;
+      --primary-dark: #0D47A1;
+      --primary-light: #42A5F5;
+      --primary-pale: #E8F1FE;
+      --accent-red: #E53935;
+      --accent-gold: #FFB300;
+      --accent-green: #2E7D32;
+      --accent-orange: #F57C00;
+      --text-primary: #10223B;
+      --text-secondary: #4A6280;
+      --text-muted: #8CA0B8;
+      --border: #DCE6F5;
+      --shadow: rgba(21,101,192,0.08);
+      --bkash: #E2136E;
+      --nagad: #F7941D;
+      --rocket: #8C3494;
+      --tab-h: 66px;
+      --header-h: 58px;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6, .brand-font {
+      font-family: 'Rajdhani', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .app-header {
+      height: var(--header-h);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #FFF;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(21,101,192,0.3);
+    }
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: 0.5px;
+    }
+    .icon-btn {
+      position: relative;
+      background: var(--primary-pale);
+      border: 1px solid var(--border);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--primary);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .icon-btn:active {
+      transform: scale(0.95);
+      background: var(--border);
+    }
+    .badge-count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--accent-red);
+      color: #FFF;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bounce 0.4s ease;
+    }
+    .main-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: calc(var(--tab-h) + 16px);
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: var(--tab-h);
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 60;
+      box-shadow: 0 -4px 16px var(--shadow);
+    }
+    .tab-item {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+    .tab-item i, .tab-item svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .tab-item.active {
+      color: var(--primary);
+    }
+    .tab-item.active i, .tab-item.active svg {
+      transform: scale(1.15);
+      stroke: var(--primary);
+    }
+    .tab-indicator {
+      position: absolute;
+      bottom: 0;
+      width: 32px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+      display: none;
+    }
+    .tab-item.active .tab-indicator {
+      display: block;
+    }
+    .view-container {
+      display: none;
+      padding: 16px;
+      animation: tab-anim-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .view-container.active {
+      display: block;
+    }
+    @keyframes tab-anim-in {
+      from { opacity: 0; transform: translateX(12px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      50% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.9; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 20px var(--shadow);
+      margin-bottom: 14px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #FFF;
+      box-shadow: 0 4px 14px rgba(21,101,192,0.28);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.05);
+    }
+    .btn-secondary {
+      background: var(--primary-pale);
+      color: var(--primary-dark);
+      border: 1px solid var(--border);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #43A047);
+      color: #FFF;
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, var(--accent-red), #E57373);
+      color: #FFF;
+    }
+    .btn-warning {
+      background: linear-gradient(135deg, var(--accent-orange), #FFA726);
+      color: #FFF;
+    }
+    .btn-full {
+      width: 100%;
+    }
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
+    }
+    .slider-container {
+      position: relative;
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+      background: var(--bg-surface);
+      touch-action: pan-y;
+      margin-bottom: 16px;
+    }
+    .slider-track {
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+      width: 100%;
+    }
+    .slider-slide {
+      min-width: 100%;
+      position: relative;
+      padding-top: 50%;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-surface);
+    }
+    .slider-dots {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      z-index: 5;
+    }
+    .slider-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.7);
+      transition: all 0.25s ease;
+    }
+    .slider-dot.active {
+      background: #FFFFFF;
+      width: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .live-strip {
+      background: var(--bg-card);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 2px 12px var(--shadow);
+      margin-bottom: 14px;
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--accent-red);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    .marquee-bar {
+      background: var(--primary-pale);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      overflow: hidden;
+      white-space: nowrap;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .marquee-text {
+      display: inline-block;
+      animation: marquee 22s linear infinite;
+      padding-left: 100%;
+    }
+    .marquee-bar:hover .marquee-text {
+      animation-play-state: paused;
+    }
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .cat-card {
+      position: relative;
+      height: 110px;
+      border-radius: 14px;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--shadow);
+      border: 1px solid var(--border);
+      transition: transform 0.15s ease;
+    }
+    .cat-card:active {
+      transform: scale(0.97);
+    }
+    .cat-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(21,101,192,0.15) 0%, rgba(13,71,161,0.85) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 12px;
+      color: #FFF;
+    }
+    .cat-name {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .cat-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,0.92);
+      color: var(--primary-dark);
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 20px;
+    }
+    .match-filter-tabs {
+      position: sticky;
+      top: 0;
+      background: var(--bg-body);
+      padding: 6px 0 12px 0;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+    }
+    .filter-tab {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-tab.active {
+      background: var(--primary);
+      color: #FFF;
+      border-color: var(--primary);
+      box-shadow: 0 3px 10px rgba(21,101,192,0.25);
+    }
+    .match-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px var(--shadow);
+      margin-bottom: 14px;
+    }
+    .match-header {
+      position: relative;
+      height: 120px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-surface);
+    }
+    .match-header-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(16,34,59,0.85) 100%);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #FFF;
+    }
+    .match-tags {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .pill-blue { background: rgba(21,101,192,0.9); color: #FFF; }
+    .pill-green { background: #2E7D32; color: #FFF; }
+    .pill-orange { background: #F57C00; color: #FFF; }
+    .pill-red { background: #E53935; color: #FFF; }
+    .match-title {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .match-body {
+      padding: 14px;
+    }
+    .match-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--bg-surface);
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .meta-item .meta-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .meta-item .meta-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .progress-track {
+      width: 100%;
+      height: 7px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .match-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .timer-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--primary-pale);
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+    .subpage {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-body);
+      z-index: 100;
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .subpage.open {
+      transform: translateX(0);
+    }
+    .subpage-header {
+      height: var(--header-h);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .subpage-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .subpage-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .profile-hero {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 20px;
+      padding: 22px 18px;
+      color: #FFF;
+      position: relative;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 22px rgba(21,101,192,0.25);
+    }
+    .profile-user-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .avatar-wrapper {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .avatar-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--accent-gold), #FFF, var(--accent-gold));
+      animation: spin 6s linear infinite;
+    }
+    .avatar-inner {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .balance-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .balance-card {
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 12px;
+      border-radius: 14px;
+    }
+    .balance-label {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+    .balance-amt {
+      font-size: 20px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .menu-list {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 18px var(--shadow);
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+    .menu-item:active {
+      background: var(--primary-pale);
+    }
+    .menu-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--primary-pale);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .bottom-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 34, 59, 0.4);
+      backdrop-filter: blur(3px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      display: flex;
+      align-items: flex-end;
+    }
+    .bottom-sheet-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .bottom-sheet {
+      width: 100%;
+      background: var(--bg-card);
+      border-radius: 20px 20px 0 0;
+      padding: 16px 20px 28px 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+    }
+    .bottom-sheet-backdrop.open .bottom-sheet {
+      transform: translateY(0);
+    }
+    .sheet-handle {
+      width: 44px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 16px auto;
+    }
+    .toast-container {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 20px rgba(21,101,192,0.14);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      animation: slide-in 0.25s ease;
+      pointer-events: auto;
+    }
+    .toast-success { border-left: 4px solid var(--accent-green); color: var(--accent-green); }
+    .toast-error { border-left: 4px solid var(--accent-red); color: var(--accent-red); }
+    .toast-warning { border-left: 4px solid var(--accent-orange); color: var(--accent-orange); }
+    .toast-default { border-left: 4px solid var(--primary); color: var(--primary); }
+    @keyframes slide-in {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-announcement {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 34, 59, 0.45);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      backdrop-filter: blur(2px);
+    }
+    .modal-announcement.open {
+      display: flex;
+    }
+    .modal-dialog {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 22px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(21,101,192,0.2);
+      text-align: center;
+      transform: scale(0.9);
+      animation: spring-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes spring-in {
+      to { transform: scale(1); }
+    }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-body);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 28px 20px;
+      justify-content: center;
+    }
+    .auth-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 10px 30px var(--shadow);
+      max-width: 420px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .auth-tabs {
+      display: flex;
+      background: var(--bg-surface);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 10px;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+    .auth-tab.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .maintenance-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-card);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      text-align: center;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-surface) 25%, #dde4f0 50%, var(--bg-surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 12px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state i, .empty-state svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.3;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div id="maintenanceOverlay" class="maintenance-overlay">
+    <div style="background: var(--primary-pale); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; color: var(--primary);">
+      <i data-lucide="wrench" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h2 style="font-size: 24px; color: var(--text-primary); margin-bottom: 8px;">System Under Maintenance</h2>
+    <p style="font-size: 14px; color: var(--text-secondary); max-width: 300px;">We are currently upgrading BD Tour servers to improve your gaming experience. Please check back shortly.</p>
+  </div>
+
+  <div id="authScreen" class="auth-overlay" style="display: none;">
+    <div class="auth-box" id="authBox">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div class="logo-badge" style="margin: 0 auto 10px auto; width: 50px; height: 50px; font-size: 24px; border-radius: 14px;">BD</div>
+        <h2 style="font-size: 26px; color: var(--primary-dark); font-weight: 700;">BD TOUR</h2>
+        <p style="font-size: 13px; color: var(--text-secondary);">Bangladesh's Premier Gaming Arena</p>
+      </div>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabLoginBtn" onclick="switchAuthMode('login')">Login</div>
+        <div class="auth-tab" id="tabRegisterBtn" onclick="switchAuthMode('register')">Register</div>
+      </div>
+
+      <form id="loginForm" onsubmit="handleAuthLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" required placeholder="user@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div style="position: relative;">
+            <input type="password" id="loginPass" class="form-control" required placeholder="Enter password">
+            <span onclick="togglePasswordVisibility('loginPass')" style="position: absolute; right: 12px; top: 11px; cursor: pointer; color: var(--text-muted);">
+              <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+            </span>
+          </div>
+        </div>
+        <div style="text-align: right; margin-bottom: 16px;">
+          <a href="#" onclick="handleForgotPassword()" style="font-size: 12px; color: var(--primary); font-weight: 600; text-decoration: none;">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit">Login to Account</button>
+      </form>
+
+      <form id="registerForm" onsubmit="handleAuthRegister(event)" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="regName" class="form-control" required placeholder="e.g. Tanvir Ahmed">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number (bKash/Nagad)</label>
+          <input type="tel" id="regPhone" class="form-control" required placeholder="017XXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="regEmail" class="form-control" required placeholder="user@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div style="position: relative;">
+            <input type="password" id="regPass" class="form-control" required placeholder="Min 6 characters">
+            <span onclick="togglePasswordVisibility('regPass')" style="position: absolute; right: 12px; top: 11px; cursor: pointer; color: var(--text-muted);">
+              <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+            </span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Referral Code (Optional)</label>
+          <input type="text" id="regRefer" class="form-control" placeholder="Enter referral code">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnRegSubmit">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app">
+    <header class="app-header">
+      <div class="header-logo">
+        <div class="logo-badge">BD</div>
+        <span class="logo-text">BD TOUR</span>
+      </div>
+      <button class="icon-btn" onclick="handleNotificationIconClick()">
+        <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+        <span class="badge-count" id="headerNotifBadge" style="display: none;">0</span>
+      </button>
+    </header>
+
+    <main class="main-scroll" id="mainContent">
+      <section id="tabHome" class="view-container active">
+        <div class="slider-container" id="sliderWrapper">
+          <div class="slider-track" id="sliderTrack">
+            <div class="slider-slide" style="background-image: linear-gradient(rgba(21,101,192,0.2), rgba(21,101,192,0.5)); display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 700;">
+              Welcome to BD Tour
+            </div>
+          </div>
+          <div class="slider-dots" id="sliderDots"></div>
+        </div>
+
+        <div class="live-strip">
+          <div class="live-dot"></div>
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-primary);"><span id="liveMatchesCount">0</span> Matches Live Now</span>
+        </div>
+
+        <div class="marquee-bar" id="marqueeBar">
+          <i data-lucide="volume-2" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+          <div style="overflow: hidden; width: 100%;">
+            <div class="marquee-text" id="marqueeText">Welcome to BD Tour! Play daily tournaments, compete for cash prizes, and withdraw safely to bKash & Nagad.</div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h3>Game Categories</h3>
+        </div>
+        <div class="categories-grid" id="categoryContainer">
+          <div class="skeleton" style="height: 110px;"></div>
+          <div class="skeleton" style="height: 110px;"></div>
+        </div>
+
+        <div class="section-title">
+          <h3>Featured Matches</h3>
+          <span style="font-size: 13px; font-weight: 600; color: var(--primary); cursor: pointer;" onclick="switchTab('matches')">View All</span>
+        </div>
+        <div id="homeMatchesContainer"></div>
+      </section>
+
+      <section id="tabMatches" class="view-container">
+        <div class="match-filter-tabs">
+          <div class="filter-tab active" onclick="filterMatches('Upcoming', this)">Upcoming</div>
+          <div class="filter-tab" onclick="filterMatches('Ongoing', this)">Ongoing</div>
+          <div class="filter-tab" onclick="filterMatches('Finished', this)">Finished</div>
+        </div>
+        <div id="matchesContainer"></div>
+      </section>
+
+      <section id="tabResults" class="view-container">
+        <div class="section-title">
+          <h3>Tournament Results</h3>
+        </div>
+        <div id="resultsContainer"></div>
+      </section>
+
+      <section id="tabProfile" class="view-container">
+        <div class="profile-hero">
+          <div class="profile-user-row">
+            <div class="avatar-wrapper" id="profileAvatarBtn" onclick="handleAvatarSecretTap()">
+              <div class="avatar-ring"></div>
+              <div class="avatar-inner" id="profileAvatarInitials">BD</div>
+            </div>
+            <div style="flex: 1;">
+              <h3 id="profileName" style="font-size: 20px; font-weight: 700; margin-bottom: 2px;">Player</h3>
+              <p id="profilePhone" style="font-size: 13px; opacity: 0.9;">Loading...</p>
+            </div>
+            <button class="icon-btn" onclick="openSubpage('subEditProfile')" style="background: rgba(255,255,255,0.25); border: none; color: #FFF;">
+              <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
+            </button>
+          </div>
+
+          <div class="balance-card-grid">
+            <div class="balance-card">
+              <div class="balance-label">Deposit Balance</div>
+              <div class="balance-amt">৳<span id="profileDepositBal">0</span></div>
+            </div>
+            <div class="balance-card">
+              <div class="balance-label">Winning Balance</div>
+              <div class="balance-amt">৳<span id="profileWinningBal">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-list">
+          <div class="menu-item" onclick="openWalletSafely()">
+            <div class="menu-left">
+              <div class="menu-icon"><i data-lucide="wallet"></i></div>
+              <span>My Wallet</span>
+            </div>
+            <i data-lucide="chevron-right" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+          <div class="menu-item" onclick="openSubpage('subTransactions')">
+            <div class="menu-left">
+              <div class="menu-icon"><i data-lucide="history"></i></div>
+              <span>All Transactions</span>
+            </div>
+            <i data-lucide="chevron-right" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+          <div class="menu-item" onclick="openSubpage('subRefer')">
+            <div class="menu-left">
+              <div class="menu-icon"><i data-lucide="share-2"></i></div>
+              <span>Refer & Earn</span>
+            </div>
+            <i data-lucide="chevron-right" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+          <div class="menu-item" onclick="openSubpage('subLeaderboard')">
+            <div class="menu-left">
+              <div class="menu-icon"><i data-lucide="bar-chart-2"></i></div>
+              <span>Leaderboard</span>
+            </div>
+            <i data-lucide="chevron-right" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+          <div class="menu-item" onclick="openSupportLink()">
+            <div class="menu-left">
+              <div class="menu-icon"><i data-lucide="headphones"></i></div>
+              <span>Customer Support</span>
+            </div>
+            <i data-lucide="external-link" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+          <div class="menu-item" onclick="handleLogout()" style="color: var(--accent-red);">
+            <div class="menu-left">
+              <div class="menu-icon" style="background: #FFEBEE; color: var(--accent-red);"><i data-lucide="log-out"></i></div>
+              <span>Logout</span>
+            </div>
+            <i data-lucide="chevron-right" style="color: var(--text-muted); width: 18px;"></i>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tab-bar">
+      <div class="tab-item active" onclick="switchTab('home')">
+        <i data-lucide="home"></i>
+        <span>Home</span>
+        <div class="tab-indicator"></div>
+      </div>
+      <div class="tab-item" onclick="switchTab('matches')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="6" y1="12" x2="10" y2="12"></line>
+          <line x1="8" y1="10" x2="8" y2="14"></line>
+          <line x1="15" y1="13" x2="15.01" y2="13"></line>
+          <line x1="18" y1="11" x2="18.01" y2="11"></line>
+          <rect x="2" y="6" width="20" height="12" rx="4"></rect>
+        </svg>
+        <span>Matches</span>
+        <div class="tab-indicator"></div>
+      </div>
+      <div class="tab-item" onclick="switchTab('results')">
+        <i data-lucide="trophy"></i>
+        <span>Results</span>
+        <div class="tab-indicator"></div>
+      </div>
+      <div class="tab-item" onclick="switchTab('profile')">
+        <i data-lucide="user"></i>
+        <span>Profile</span>
+        <div class="tab-indicator"></div>
+      </div>
+    </nav>
+  </div>
+
+  <div id="subWallet" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subWallet')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">My Wallet</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div class="card" style="background: linear-gradient(135deg, #FFF, var(--primary-pale)); border: 1.5px solid var(--border); text-align: center; padding: 24px 16px;">
+        <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">TOTAL WALLET BALANCE</span>
+        <div style="font-size: 34px; font-weight: 800; color: var(--primary-dark); font-family: 'Rajdhani', sans-serif; margin: 8px 0;">৳<span id="walletTotalBal">0</span></div>
+        <div style="display: flex; justify-content: center; gap: 20px; font-size: 13px; color: var(--text-secondary);">
+          <span>Deposit: <strong>৳<span id="walletDepBal">0</span></strong></span>
+          <span>Winning: <strong>৳<span id="walletWinBal">0</span></strong></span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+        <button class="btn btn-primary" onclick="openAddMoneySafely()">
+          <i data-lucide="plus-circle" style="width: 18px;"></i> Add Money
+        </button>
+        <button class="btn btn-secondary" onclick="openSubpage('subWithdraw')">
+          <i data-lucide="arrow-down-to-line" style="width: 18px;"></i> Withdraw
+        </button>
+      </div>
+
+      <div class="section-title">
+        <h3>How It Works</h3>
+      </div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="openTutorial('addMoney')">
+          <div class="menu-left">
+            <div class="menu-icon"><i data-lucide="play-circle"></i></div>
+            <span>How to Add Money</span>
+          </div>
+          <i data-lucide="external-link" style="color: var(--text-muted); width: 16px;"></i>
+        </div>
+        <div class="menu-item" onclick="openTutorial('roomId')">
+          <div class="menu-left">
+            <div class="menu-icon"><i data-lucide="play-circle"></i></div>
+            <span>How to Get Room ID & Pass</span>
+          </div>
+          <i data-lucide="external-link" style="color: var(--text-muted); width: 16px;"></i>
+        </div>
+        <div class="menu-item" onclick="openTutorial('joinMatch')">
+          <div class="menu-left">
+            <div class="menu-icon"><i data-lucide="play-circle"></i></div>
+            <span>How to Join Match</span>
+          </div>
+          <i data-lucide="external-link" style="color: var(--text-muted); width: 16px;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="subAddMoney" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subAddMoney')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Add Money</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-full" id="btnMethodBkash" onclick="selectPaymentMethod('bkash')" style="background: var(--bkash); color: #FFF;">bKash</button>
+        <button class="btn btn-full" id="btnMethodNagad" onclick="selectPaymentMethod('nagad')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border);">Nagad</button>
+        <button class="btn btn-full" id="btnMethodRocket" onclick="selectPaymentMethod('rocket')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border);">Rocket</button>
+      </div>
+
+      <div class="card" style="text-align: center; border-left: 4px solid var(--primary);">
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Send Money (Personal Number)</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <h3 id="paymentNumberDisplay" style="font-size: 22px; color: var(--primary-dark);">01XXXXXXXXX</h3>
+          <button class="btn btn-secondary" onclick="copyPaymentNumber()" style="padding: 6px 10px; font-size: 12px;">Copy</button>
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Min Deposit: ৳<span id="minDepVal">10</span>. Please use "Send Money" only.</p>
+      </div>
+
+      <form onsubmit="handleVerifyDeposit(event)">
+        <div class="form-group">
+          <label class="form-label">Deposit Amount (৳)</label>
+          <input type="number" id="depAmount" class="form-control" required placeholder="Enter amount">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transaction ID (TrxID)</label>
+          <input type="text" id="depTrxId" class="form-control" required placeholder="e.g. 9J87KLO98" style="text-transform: uppercase;">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnVerifyDeposit">Verify & Add Money</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="subWithdraw" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subWithdraw')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Withdraw Winnings</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div class="card" style="background: linear-gradient(135deg, #FFF8E1, #FFF); border: 1.5px solid var(--accent-gold); margin-bottom: 16px;">
+        <span style="font-size: 12px; color: var(--accent-orange); font-weight: 700;">AVAILABLE WINNING BALANCE</span>
+        <div style="font-size: 28px; font-weight: 800; color: #E65100; font-family: 'Rajdhani', sans-serif;">৳<span id="withdrawWinBalDisplay">0</span></div>
+        <p style="font-size: 11px; color: var(--text-muted);">Deposited balance cannot be withdrawn directly. Only winnings can be cashed out.</p>
+      </div>
+
+      <form onsubmit="handleWithdrawSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Select Payment Method</label>
+          <div style="display: flex; gap: 10px;">
+            <label style="flex: 1; display: flex; align-items: center; gap: 6px; padding: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 600;">
+              <input type="radio" name="wdMethod" value="bKash" checked> bKash
+            </label>
+            <label style="flex: 1; display: flex; align-items: center; gap: 6px; padding: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 600;">
+              <input type="radio" name="wdMethod" value="Nagad"> Nagad
+            </label>
+            <label style="flex: 1; display: flex; align-items: center; gap: 6px; padding: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-weight: 600;">
+              <input type="radio" name="wdMethod" value="Rocket"> Rocket
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Mobile Number</label>
+          <input type="tel" id="wdNumber" class="form-control" required placeholder="01XXXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Withdrawal Amount (৳)</label>
+          <input type="number" id="wdAmount" class="form-control" required placeholder="Min ৳50">
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Minimum withdrawal is ৳<span id="minWdVal">50</span>. Withdrawals are processed within 1–12 hours.</p>
+        <button type="submit" class="btn btn-primary btn-full" id="btnWithdrawSubmit">Submit Request</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="subTransactions" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subTransactions')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Transaction History</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div id="txListContainer"></div>
+    </div>
+  </div>
+
+  <div id="subNotifications" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subNotifications')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Notifications</div>
+      <button class="btn btn-secondary" onclick="markAllNotificationsRead()" style="padding: 6px 10px; font-size: 12px;">Mark Read</button>
+    </div>
+    <div class="subpage-body">
+      <div id="notifListContainer"></div>
+    </div>
+  </div>
+
+  <div id="subRefer" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subRefer')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Refer & Earn</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div class="card" style="text-align: center;">
+        <i data-lucide="gift" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 8px;"></i>
+        <h3 style="font-size: 20px; margin-bottom: 6px;">Invite Friends & Win Cash</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Share your unique referral code. You will earn bonus wallet cash for each friend who registers.</p>
+        
+        <div style="background: var(--primary-pale); border: 1.5px dashed var(--primary); border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span id="referralCodeText" style="font-size: 20px; font-weight: 800; color: var(--primary-dark); font-family: 'Rajdhani', sans-serif;">------</span>
+          <button class="btn btn-primary" onclick="copyReferralCode()" style="padding: 8px 14px; font-size: 12px;">Copy</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;">
+          <div style="background: var(--bg-surface); padding: 10px; border-radius: 10px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Friends Joined</div>
+            <div style="font-size: 18px; font-weight: 700;" id="referralCountVal">0</div>
+          </div>
+          <div style="background: var(--bg-surface); padding: 10px; border-radius: 10px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Total Earned</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--accent-green);">৳<span id="referralEarnedVal">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="subLeaderboard" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subLeaderboard')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Leaderboard</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <div id="leaderboardList"></div>
+    </div>
+  </div>
+
+  <div id="subEditProfile" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subEditProfile')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Edit Profile</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body">
+      <form onsubmit="handleSaveProfile(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="editName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" id="editPhone" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="subResultDetail" class="subpage">
+    <div class="subpage-header">
+      <button class="icon-btn" onclick="closeSubpage('subResultDetail')"><i data-lucide="arrow-left"></i></button>
+      <div class="subpage-title">Match Results</div>
+      <div style="width: 40px;"></div>
+    </div>
+    <div class="subpage-body" id="resultDetailContent"></div>
+  </div>
+
+  <div class="bottom-sheet-backdrop" id="sheetJoinMatch" onclick="handleSheetBackdropClick(event, 'sheetJoinMatch')">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 style="font-size: 18px;">Confirm Match Join</h3>
+        <span class="pill pill-blue" id="joinSheetTypeBadge">Solo</span>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;" id="joinSheetMatchTitle">Tournament</p>
+      
+      <div class="card" style="background: var(--bg-surface); padding: 12px; margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+          <span>Entry Fee:</span>
+          <strong>৳<span id="joinSheetFee">0</span></strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+          <span>Your Total Balance:</span>
+          <strong>৳<span id="joinSheetUserBal">0</span></strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; border-top: 1px dashed var(--border); padding-top: 6px; margin-top: 6px;">
+          <span>স্লটের বর্তমান অবস্থা:</span>
+          <span style="font-weight: 700; color: var(--accent-green);"><span id="joinSheetRemainingSlots">0</span> টি খালি আছে</span>
+        </div>
+      </div>
+
+      <!-- গেমের নিয়মাবলী ও বিধিনিষেধ -->
+      <div id="joinSheetRulesBox" class="card" style="background: #FFF9C4; border: 1.5px solid var(--accent-gold); padding: 12px; margin-bottom: 12px; display: none;">
+        <div style="font-weight: 700; font-size: 13px; color: #E65100; display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <i data-lucide="alert-circle" style="width:16px;height:16px;"></i> ম্যাচের নিয়ম ও বিধিনিষেধ (Rules):
+        </div>
+        <div id="joinSheetRulesText" style="font-size: 12px; color: #5D4037; white-space: pre-line; line-height: 1.4;"></div>
+      </div>
+
+      <!-- স্লট নম্বর পছন্দ/নির্বাচন -->
+      <div class="form-group">
+        <label class="form-label" style="display: flex; justify-content: space-between;">
+          <span>স্লট নম্বর (Select Slot)</span>
+          <span style="color: var(--primary); font-size: 11px;">স্বয়ংক্রিয় নির্ধারিত</span>
+        </label>
+        <select id="joinSheetSlotSelect" class="form-control" style="font-weight: 700;"></select>
+      </div>
+
+      <!-- ম্যাচ টাইপ (Solo, Duo, Squad) অনুযায়ী ডাইনামিক প্লেয়ার নেইম ইনপুট -->
+      <div id="joinSheetPlayersContainer"></div>
+
+      <button class="btn btn-primary btn-full" id="btnConfirmJoinMatch" onclick="executeJoinMatch()" style="margin-top: 8px;">Confirm & Pay Fee</button>
+    </div>
+  </div>
+
+  <div class="bottom-sheet-backdrop" id="sheetRoomId" onclick="handleSheetBackdropClick(event, 'sheetRoomId')">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <h3 style="font-size: 18px; margin-bottom: 14px; text-align: center;">Room Credentials</h3>
+      
+      <!-- আপনার স্লট এবং টিমের বিবরণ -->
+      <div class="card" style="background: var(--bg-surface); padding: 14px; margin-bottom: 14px; text-align: center; border: 1.5px solid var(--border);">
+        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">আপনার জয়েনকৃত স্লট</div>
+        <div style="font-size: 26px; font-weight: 800; color: var(--primary); font-family: 'Rajdhani', sans-serif; letter-spacing: 0.5px;" id="sheetRoomUserSlot">স্লট #--</div>
+        <div style="display: inline-block; margin-top: 4px;">
+          <span class="badge badge-blue" style="font-size: 12px; font-weight: 700; padding: 4px 10px;" id="sheetRoomTeamBadge">টিম রস্টার</span>
+        </div>
+        <div style="font-size: 11px; color: var(--accent-green); font-weight: 600; margin-top: 4px;" id="sheetRoomSlotsRemaining">--</div>
+        <div id="sheetRoomRosterContainer" style="margin-top: 10px; text-align: left;"></div>
+      </div>
+
+      <div class="card" style="background: var(--primary-pale); border: 1.5px solid var(--border); margin-bottom: 12px;">
+        <div style="font-size: 11px; color: var(--text-muted);">ROOM ID</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <h2 id="sheetRoomIdVal" style="color: var(--primary-dark); font-size: 22px;">------</h2>
+          <button class="btn btn-secondary" onclick="copyText(document.getElementById('sheetRoomIdVal').innerText)" style="padding: 6px 10px; font-size: 12px;">Copy</button>
+        </div>
+      </div>
+
+      <div class="card" style="background: var(--primary-pale); border: 1.5px solid var(--border); margin-bottom: 16px;">
+        <div style="font-size: 11px; color: var(--text-muted);">ROOM PASSWORD</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+          <h2 id="sheetRoomPassVal" style="color: var(--primary-dark); font-size: 22px;">------</h2>
+          <button class="btn btn-secondary" onclick="copyText(document.getElementById('sheetRoomPassVal').innerText)" style="padding: 6px 10px; font-size: 12px;">Copy</button>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-bottom: 16px;">Credentials will be released 10–15 minutes before match start.</p>
+      <button class="btn btn-secondary btn-full" onclick="closeSheet('sheetRoomId')">Close</button>
+    </div>
+  </div>
+
+  <div class="bottom-sheet-backdrop" id="sheetAdminSecret" onclick="handleSheetBackdropClick(event, 'sheetAdminSecret')">
+    <div class="bottom-sheet">
+      <div class="sheet-handle"></div>
+      <h3 style="font-size: 18px; margin-bottom: 12px; color: var(--primary-dark);">Admin Console Access</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Authorized administrators only. Please authenticate.</p>
+      <div class="form-group">
+        <label class="form-label">Admin Email</label>
+        <input type="email" id="secretAdminEmail" class="form-control" placeholder="Enter Admin Email" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Admin Password</label>
+        <input type="password" id="secretAdminPass" class="form-control" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="handleAdminSecretLogin()">Proceed to Admin Panel</button>
+    </div>
+  </div>
+
+  <div class="modal-announcement" id="modalAnnouncement">
+    <div class="modal-dialog">
+      <div style="background: var(--primary-pale); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: var(--primary);">
+        <i data-lucide="megaphone" style="width: 24px; height: 24px;"></i>
+      </div>
+      <h3 id="announcementTitle" style="font-size: 18px; margin-bottom: 8px;">Notice</h3>
+      <p id="announcementBody" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">Stay tuned for tournaments!</p>
+      <button class="btn btn-primary btn-full" onclick="dismissAnnouncement()">Got It</button>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEf2W-WKMbN4rafady6hdW2lNeQh9m7qA",
+      authDomain: "play-ff-income.firebaseapp.com",
+      projectId: "play-ff-income",
+      storageBucket: "play-ff-income.firebasestorage.app",
+      messagingSenderId: "43224866906",
+      appId: "1:43224866906:web:8b3fa564be1a1831f67863",
+      measurementId: "G-S8H7VRQCM5"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const cloudFunctions = firebase.functions();
+
+    let currentUser = null;
+    let currentUserData = null;
+    let isUserDataReady = false;
+    let appSettings = {};
+    let cacheMatches = {};
+    let cacheCategories = {};
+    let cacheSliders = [];
+    let cacheNotifications = [];
+    let cacheUserNotifications = []; // জয়েন করা ম্যাচের ব্যক্তিগত নোটিফিকেশন ক্যাশ
+    let activeMatchTab = 'Upcoming';
+    let currentCategoryFilter = null;
+    let secretTapCount = 0;
+    let secretTapTimer = null;
+    let joiningMatchId = null;
+    let sliderTimer = null;
+    let currentSlideIndex = 0;
+    let activeListeners = [];
+    let currentActiveSessionId = null;
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(msg, type = 'default') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      let icon = 'info';
+      if (type === 'success') icon = 'check-circle';
+      if (type === 'error') icon = 'alert-circle';
+      if (type === 'warning') icon = 'alert-triangle';
+
+      toast.innerHTML = `<i data-lucide="${icon}" style="width: 18px; height: 18px;"></i><span>${escapeHtml(msg)}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3000);
+    }
+
+    function animateCountUp(element, start, end, duration = 800) {
+      if (!element) return;
+      const startTime = performance.now();
+      const diff = end - start;
+      const step = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 2);
+        element.textContent = Math.floor(start + diff * ease);
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          element.textContent = end;
+        }
+      };
+      requestAnimationFrame(step);
+    }
+
+    async function registerDeviceSession(uid) {
+      const newSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+      currentActiveSessionId = newSessionId;
+      localStorage.setItem('my_device_session_id', newSessionId);
+      await db.collection('users').doc(uid).update({ currentSessionId: newSessionId });
+      return newSessionId;
+    }
+
+    function listenForSingleDeviceSession(uid) {
+      const unsub = db.collection('users').doc(uid).onSnapshot((doc) => {
+        if (!doc.exists) return;
+        const serverSessionId = doc.data().currentSessionId;
+        const localSessionId = localStorage.getItem('my_device_session_id') || currentActiveSessionId;
+
+        if (serverSessionId && localSessionId && serverSessionId !== localSessionId) {
+          unsub();
+          auth.signOut();
+          localStorage.removeItem('my_device_session_id');
+          localStorage.removeItem('cached_user_profile');
+          currentActiveSessionId = null;
+          isUserDataReady = false;
+          alert('আপনার অ্যাকাউন্টটি অন্য একটি ফোনে লগইন করা হয়েছে! আপনাকে সাইন-আউট করা হলো।');
+          window.location.reload();
+        }
+      });
+      activeListeners.push(unsub);
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('authScreen').style.display = 'none';
+
+        if (!localStorage.getItem('my_device_session_id')) {
+          await registerDeviceSession(user.uid);
+        }
+
+        renderUserProfile();
+        listenForSingleDeviceSession(user.uid);
+        attachRealtimeListeners();
+        listenToUserSpecificNotifications(user.uid);
+      } else {
+        currentUser = null;
+        currentUserData = null;
+        isUserDataReady = false;
+        detachRealtimeListeners();
+        document.getElementById('authScreen').style.display = 'flex';
+      }
+      lucide.createIcons();
+    });
+
+    function attachRealtimeListeners() {
+      detachRealtimeListeners();
+
+      // app_settings (doc config)
+      const unsubSettings = db.collection('app_settings').doc('config').onSnapshot((doc) => {
+        appSettings = doc.exists ? doc.data() : {};
+        applyAppSettings();
+      });
+      activeListeners.push(unsubSettings);
+
+      // sliders
+      const unsubSliders = db.collection('sliders').onSnapshot((snap) => {
+        cacheSliders = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderSliders();
+      });
+      activeListeners.push(unsubSliders);
+
+      // categories
+      const unsubCats = db.collection('categories').onSnapshot((snap) => {
+        cacheCategories = {};
+        snap.forEach(doc => { cacheCategories[doc.id] = doc.data(); });
+        renderCategories();
+      });
+      activeListeners.push(unsubCats);
+
+      // matches
+      const unsubMatches = db.collection('matches').onSnapshot((snap) => {
+        cacheMatches = {};
+        snap.forEach(doc => { cacheMatches[doc.id] = doc.data(); });
+        renderMatches();
+        renderResults();
+        updateLiveCount();
+        renderCategories(); // ম্যাচ লোড হলে ক্যাটাগরির কাউন্ট স্বয়ংক্রিয়ভাবে আপডেট হবে
+      });
+      activeListeners.push(unsubMatches);
+
+      if (currentUser) {
+        // user profile
+        const unsubUser = db.collection('users').doc(currentUser.uid).onSnapshot((doc) => {
+          if (!doc.exists) return;
+          const data = doc.data();
+          currentUserData = data;
+          isUserDataReady = true;
+
+          localStorage.setItem('cached_user_profile', JSON.stringify(data));
+
+          if (currentUserData.banned) {
+            auth.signOut();
+            showToast('Your account has been suspended.', 'error');
+            return;
+          }
+          renderUserProfile();
+        });
+        activeListeners.push(unsubUser);
+
+        // ১. সাধারণ গ্লোবাল নোটিফিকেশন
+        const unsubNotifs = db.collection('notifications').onSnapshot((snap) => {
+          cacheNotifications = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderNotifications();
+        });
+        activeListeners.push(unsubNotifs);
+
+        // ২. জয়েন করা ম্যাচের ব্যক্তিগত নোটিফিকেশন লিসেনার
+        const unsubUserNotifs = db.collection('user_notifications').doc(currentUser.uid).collection('items').onSnapshot((snap) => {
+          cacheUserNotifications = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderNotifications();
+        });
+        activeListeners.push(unsubUserNotifs);
+
+        // user transactions
+        const unsubTx = db.collection('transactions').doc(currentUser.uid).collection('items').onSnapshot((snap) => {
+          const txs = {};
+          snap.forEach(doc => { txs[doc.id] = doc.data(); });
+          renderTransactions(txs);
+        });
+        activeListeners.push(unsubTx);
+      }
+    }
+
+    function detachRealtimeListeners() {
+      activeListeners.forEach(unsub => {
+        if (typeof unsub === 'function') unsub();
+      });
+      activeListeners = [];
+    }
+
+    function applyAppSettings() {
+      if (appSettings.maintenance_mode) {
+        document.getElementById('maintenanceOverlay').style.display = 'flex';
+      } else {
+        document.getElementById('maintenanceOverlay').style.display = 'none';
+      }
+
+      if (appSettings.notice) {
+        document.getElementById('marqueeText').textContent = appSettings.notice;
+      }
+
+      if (appSettings.min_deposit) {
+        document.getElementById('minDepVal').textContent = appSettings.min_deposit;
+      }
+      if (appSettings.min_withdraw) {
+        document.getElementById('minWdVal').textContent = appSettings.min_withdraw;
+      }
+
+      selectPaymentMethod('bkash');
+
+      if (appSettings.announcement && appSettings.announcement.active) {
+        const seen = sessionStorage.getItem('announcement_seen');
+        if (!seen) {
+          document.getElementById('announcementTitle').textContent = appSettings.announcement.title || 'Announcement';
+          document.getElementById('announcementBody').textContent = appSettings.announcement.body || '';
+          document.getElementById('modalAnnouncement').classList.add('open');
+        }
+      }
+    }
+
+    function dismissAnnouncement() {
+      sessionStorage.setItem('announcement_seen', 'true');
+      document.getElementById('modalAnnouncement').classList.remove('open');
+    }
+
+    function renderSliders() {
+      const track = document.getElementById('sliderTrack');
+      const dots = document.getElementById('sliderDots');
+      track.innerHTML = '';
+      dots.innerHTML = '';
+
+      if (!cacheSliders.length) {
+        track.innerHTML = `<div class="slider-slide" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); display:flex; align-items:center; justify-content:center; color:#FFF; font-weight:700;">BD TOUR</div>`;
+        return;
+      }
+
+      cacheSliders.forEach((s, idx) => {
+        const slide = document.createElement('div');
+        slide.className = 'slider-slide';
+        slide.style.backgroundImage = `url('${escapeHtml(s.img)}')`;
+        if (s.link) {
+          slide.style.cursor = 'pointer';
+          slide.onclick = () => window.open(s.link, '_blank');
+        }
+        track.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = `slider-dot ${idx === 0 ? 'active' : ''}`;
+        dots.appendChild(dot);
+      });
+
+      setupSliderTouch();
+      startSliderAuto();
+    }
+
+    function startSliderAuto() {
+      clearInterval(sliderTimer);
+      if (cacheSliders.length <= 1) return;
+      sliderTimer = setInterval(() => {
+        currentSlideIndex = (currentSlideIndex + 1) % cacheSliders.length;
+        updateSliderPosition();
+      }, 4000);
+    }
+
+    function updateSliderPosition() {
+      const track = document.getElementById('sliderTrack');
+      track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+      const dots = document.querySelectorAll('.slider-dot');
+      dots.forEach((d, i) => {
+        d.classList.toggle('active', i === currentSlideIndex);
+      });
+    }
+
+    function setupSliderTouch() {
+      const wrapper = document.getElementById('sliderWrapper');
+      let startX = 0;
+      let endX = 0;
+
+      wrapper.ontouchstart = (e) => {
+        startX = e.touches[0].clientX;
+        clearInterval(sliderTimer);
+      };
+      wrapper.ontouchend = (e) => {
+        endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        if (Math.abs(diff) > 50) {
+          if (diff > 0 && currentSlideIndex < cacheSliders.length - 1) {
+            currentSlideIndex++;
+          } else if (diff < 0 && currentSlideIndex > 0) {
+            currentSlideIndex--;
+          }
+          updateSliderPosition();
+        }
+        startSliderAuto();
+      };
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categoryContainer');
+      container.innerHTML = '';
+      const catKeys = Object.keys(cacheCategories);
+      if (!catKeys.length) {
+        container.innerHTML = `<div class="empty-state" style="grid-column: span 2;">No categories available</div>`;
+        return;
+      }
+
+      catKeys.forEach((k) => {
+        const cat = cacheCategories[k];
+        const catNameLower = (cat.name || '').trim().toLowerCase();
+        const catIdLower = k.trim().toLowerCase();
+
+        // ক্যাটাগরি আইডি (ID) অথবা নাম (Name) যেকোনো একটির সাথে ম্যাচ করলেই সঠিক ম্যাচ কাউন্ট পাওয়া যাবে
+        const matchCount = Object.values(cacheMatches).filter(m => {
+          const mCat = (m.categoryId || '').toString().trim().toLowerCase();
+          const isCategoryMatch = mCat === catIdLower || (catNameLower && mCat === catNameLower);
+          const isUpcomingOrOngoing = m.status === 'Upcoming' || m.status === 'Ongoing';
+          return isCategoryMatch && isUpcomingOrOngoing;
+        }).length;
+
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.style.backgroundImage = `url('${escapeHtml(cat.img || '')}')`;
+        card.onclick = () => {
+          currentCategoryFilter = k;
+          switchTab('matches');
+          filterMatches('Upcoming');
+        };
+        card.innerHTML = `
+          <div class="cat-overlay">
+            <span class="cat-badge">${matchCount} Matches</span>
+            <div class="cat-name">${escapeHtml(cat.name)}</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    function updateLiveCount() {
+      const count = Object.values(cacheMatches).filter(m => m.status === 'Ongoing').length;
+      document.getElementById('liveMatchesCount').textContent = count;
+    }
+
+    function filterMatches(status, element) {
+      activeMatchTab = status;
+      if (element) {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+      }
+      renderMatches();
+    }
+
+    function renderMatches() {
+      const container = document.getElementById('matchesContainer');
+      const homeFeatured = document.getElementById('homeMatchesContainer');
+      const now = Date.now();
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      // ২৪ ঘণ্টার বেশি পূর্বে সমাপ্ত হওয়া ম্যাচ স্বয়ংক্রিয়ভাবে ফিল্টার আউট
+      const allMatches = Object.keys(cacheMatches)
+        .map(k => ({ id: k, ...cacheMatches[k] }))
+        .filter(m => !(m.status === 'Finished' && m.finishedAt && (now - m.finishedAt >= TWENTY_FOUR_HOURS)));
+
+      let filtered = allMatches.filter(m => m.status === activeMatchTab);
+      if (currentCategoryFilter) {
+        const catObj = cacheCategories[currentCategoryFilter];
+        const catNameLower = catObj ? (catObj.name || '').trim().toLowerCase() : '';
+        const catIdLower = currentCategoryFilter.trim().toLowerCase();
+        filtered = filtered.filter(m => {
+          const mCat = (m.categoryId || '').toString().trim().toLowerCase();
+          return mCat === catIdLower || (catNameLower && mCat === catNameLower);
+        });
+      }
+
+      const buildMatchCard = (m) => {
+        const joinedCount = m.joined || 0;
+        const totalSlots = m.total_slots || 100;
+        const pct = Math.min((joinedCount / totalSlots) * 100, 100);
+        let progressColor = 'var(--accent-green)';
+        if (pct > 50) progressColor = 'var(--accent-orange)';
+        if (pct >= 90) progressColor = 'var(--accent-red)';
+
+        const isJoined = currentUser && m.participants && m.participants[currentUser.uid];
+        const isFull = joinedCount >= totalSlots;
+        const isOngoing = m.status === 'Ongoing';
+        const isFinished = m.status === 'Finished';
+
+        let actionBtn = `<button class="btn btn-primary" onclick="openJoinSheet('${m.id}')">Join ৳${m.entry_fee}</button>`;
+        
+        if (isJoined) {
+          const participantData = m.participants && m.participants[currentUser ? currentUser.uid : ''];
+          const userSlotNum = (participantData && typeof participantData === 'object' && participantData.slot) 
+            ? participantData.slot 
+            : null;
+
+          actionBtn = `
+            <div style="display:flex; gap:6px; align-items:center;">
+              <button class="btn btn-secondary" onclick="viewRoomCredentials('${m.id}')">Room ID</button>
+              <button class="btn btn-success" onclick="viewRoomCredentials('${m.id}')" style="font-size: 12px; padding: 10px 14px;">
+                ${userSlotNum ? `স্লট #${userSlotNum}` : 'Joined'}
+              </button>
+            </div>
+          `;
+        } else if (isOngoing) {
+          actionBtn = `<button class="btn btn-warning" disabled style="opacity: 0.75; cursor: not-allowed;"><i data-lucide="play" style="width: 14px;"></i> Ongoing</button>`;
+        } else if (isFinished) {
+          actionBtn = `<button class="btn btn-secondary" disabled style="opacity: 0.75; cursor: not-allowed;">Closed</button>`;
+        } else if (isFull) {
+          actionBtn = `<button class="btn btn-danger" disabled>Full</button>`;
+        }
+
+        return `
+          <div class="match-card">
+            <div class="match-header" style="background-image: url('${escapeHtml(m.img || '')}')">
+              <div class="match-header-overlay">
+                <div class="match-tags">
+                  <span class="pill pill-blue">${escapeHtml(m.type || 'Solo')}</span>
+                  <span class="pill pill-green">${escapeHtml(m.map || 'Bermuda')}</span>
+                  <span class="pill pill-orange">${escapeHtml(m.status)}</span>
+                </div>
+                <div class="match-title">${escapeHtml(m.title)}</div>
+              </div>
+            </div>
+            <div class="match-body">
+              <div class="match-meta-grid">
+                <div class="meta-item">
+                  <div class="meta-label">Total Prize</div>
+                  <div class="meta-val" style="color: var(--accent-green);">৳${m.total_prize || 0}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Per Kill</div>
+                  <div class="meta-val" style="color: var(--primary);">৳${m.per_kill || 0}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Entry Fee</div>
+                  <div class="meta-val">৳${m.entry_fee || 0}</div>
+                </div>
+              </div>
+
+              ${m.rules ? `
+                <div style="background: #FFF9C4; border: 1px solid var(--accent-gold); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; font-size: 12px; color: #5D4037;">
+                  <strong style="color: #E65100;">⚠️ নিয়মাবলী:</strong> ${escapeHtml(m.rules)}
+                </div>
+              ` : ''}
+              <div class="progress-track">
+                <div class="progress-fill" style="width: ${pct}%; background: ${progressColor};"></div>
+              </div>
+              <div class="progress-info">
+                <span>Slots Filled: ${joinedCount}/${totalSlots}</span>
+                <span>${Math.max(totalSlots - joinedCount, 0)} left</span>
+              </div>
+
+              <div class="match-footer">
+                <div class="timer-badge" id="timer-${m.id}">
+                  <i data-lucide="clock" style="width: 14px;"></i>
+                  <span>${escapeHtml(m.date || '')} ${escapeHtml(m.time || '')}</span>
+                </div>
+                ${actionBtn}
+              </div>
+            </div>
+          </div>
+        `;
+      };
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="inbox"></i>
+            <h4>No Matches Found</h4>
+            <p>Check back soon for new tournaments.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = filtered.map(buildMatchCard).join('');
+      }
+
+      const upcomingTop3 = allMatches.filter(m => m.status === 'Upcoming').slice(0, 3);
+      if (upcomingTop3.length) {
+        homeFeatured.innerHTML = upcomingTop3.map(buildMatchCard).join('');
+      } else {
+        homeFeatured.innerHTML = `<div class="empty-state"><p>No upcoming tournaments right now.</p></div>`;
+      }
+      lucide.createIcons();
+    }
+
+    function renderResults() {
+      const container = document.getElementById('resultsContainer');
+      const now = Date.now();
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      // ২৪ ঘণ্টার বেশি পূর্বে সমাপ্ত হওয়া ফলাফল স্বয়ংক্রিয়ভাবে লুকানো
+      const finishedMatches = Object.keys(cacheMatches)
+        .map(k => ({ id: k, ...cacheMatches[k] }))
+        .filter(m => m.status === 'Finished' && !(m.finishedAt && (now - m.finishedAt >= TWENTY_FOUR_HOURS)));
+
+      if (!finishedMatches.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="trophy"></i>
+            <h4>No Completed Matches</h4>
+            <p>Finished match results will appear here.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = finishedMatches.map(m => `
+        <div class="match-card" onclick="openResultDetail('${m.id}')" style="cursor: pointer;">
+          <div class="match-header" style="background-image: url('${escapeHtml(m.img || '')}')">
+            <div class="match-header-overlay">
+              <span class="pill pill-green">Finished</span>
+              <div class="match-title">${escapeHtml(m.title)}</div>
+            </div>
+          </div>
+          <div class="match-body" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(m.date || '')}</div>
+              <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">Total Prize: ৳${m.total_prize || 0}</div>
+            </div>
+            <button class="btn btn-secondary" style="padding: 8px 12px;">View Results</button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openResultDetail(matchId) {
+      const m = cacheMatches[matchId];
+      if (!m) return;
+
+      const content = document.getElementById('resultDetailContent');
+      let userWonBanner = '';
+
+      db.collection('match_participants').doc(matchId).get().then((snap) => {
+        const parts = snap.exists ? snap.data() : {};
+        if (currentUser && parts[currentUser.uid] && parts[currentUser.uid].prize_earned > 0) {
+          userWonBanner = `
+            <div style="background: linear-gradient(135deg, var(--accent-green), #43A047); color: #FFF; padding: 14px; border-radius: 14px; text-align: center; margin-bottom: 16px; font-weight: 700;">
+              🎉 Congratulations! You won ৳${parts[currentUser.uid].prize_earned}!
+            </div>
+          `;
+        }
+
+        const participantsList = Object.keys(parts).map(k => ({ uid: k, ...parts[k] }));
+        participantsList.sort((a, b) => (a.result || 999) - (b.result || 999));
+
+        content.innerHTML = `
+          ${userWonBanner}
+          <div class="card">
+            <h3 style="font-size: 20px; margin-bottom: 6px;">${escapeHtml(m.title)}</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Played on: ${escapeHtml(m.date || '')} ${escapeHtml(m.time || '')}</p>
+            <div style="display: flex; gap: 12px; font-size: 13px;">
+              <span>Total Pool: <strong>৳${m.total_prize || 0}</strong></span>
+              <span>Map: <strong>${escapeHtml(m.map || '')}</strong></span>
+            </div>
+          </div>
+
+          <div class="section-title"><h3>Winners Standings</h3></div>
+          <div class="card" style="padding: 10px;">
+            ${participantsList.length ? participantsList.map((p, i) => {
+              let rankStyle = '';
+              let badge = `#${i+1}`;
+              if (p.result === 1) { rankStyle = 'background: #FFF8E1; border: 1px solid var(--accent-gold);'; badge = '👑 1st'; }
+              else if (p.result === 2) { rankStyle = 'background: #F5F5F5;'; badge = '🥈 2nd'; }
+              else if (p.result === 3) { rankStyle = 'background: #FFF3E0;'; badge = '🥉 3rd'; }
+
+              return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; ${rankStyle}">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700; font-size: 13px;">${badge}</span>
+                    <span style="font-weight: 600; font-size: 14px;">${escapeHtml(p.ign || p.username || 'Player')}</span>
+                  </div>
+                  <span style="font-weight: 700; color: var(--accent-green); font-size: 14px;">৳${p.prize_earned || 0}</span>
+                </div>
+              `;
+            }).join('') : '<div class="empty-state"><p>No participants recorded.</p></div>'}
+          </div>
+        `;
+        openSubpage('subResultDetail');
+      }).catch(err => {
+        showToast('Error loading results: ' + err.message, 'error');
+      });
+    }
+
+    function renderUserProfile() {
+      const cached = JSON.parse(localStorage.getItem('cached_user_profile') || '{}');
+      const uData = currentUserData || cached;
+
+      if (!uData || (!uData.username && !uData.name)) return;
+
+      const uName = uData.username || uData.name || 'Player';
+      const uPhone = uData.phone || uData.phoneNumber || '';
+
+      document.getElementById('profileName').textContent = uName;
+      document.getElementById('profilePhone').textContent = uPhone;
+
+      const initials = (uName || 'BD').substring(0, 2).toUpperCase();
+      document.getElementById('profileAvatarInitials').textContent = initials;
+
+      const dep = Number(uData.deposit) || 0;
+      const win = Number(uData.winning) || 0;
+      const total = dep + win;
+
+      animateCountUp(document.getElementById('profileDepositBal'), 0, dep);
+      animateCountUp(document.getElementById('profileWinningBal'), 0, win);
+
+      animateCountUp(document.getElementById('walletTotalBal'), 0, total);
+      animateCountUp(document.getElementById('walletDepBal'), 0, dep);
+      animateCountUp(document.getElementById('walletWinBal'), 0, win);
+      animateCountUp(document.getElementById('withdrawWinBalDisplay'), 0, win);
+
+      document.getElementById('referralCodeText').textContent = uData.referCode || '------';
+      document.getElementById('referralCountVal').textContent = uData.referralCount || 0;
+      document.getElementById('referralEarnedVal').textContent = uData.referralEarned || 0;
+
+      if (document.getElementById('editName')) {
+        document.getElementById('editName').value = uName;
+      }
+      if (document.getElementById('editPhone')) {
+        document.getElementById('editPhone').value = uPhone;
+      }
+    }
+
+    function openWalletSafely() {
+      if (!isUserDataReady && !localStorage.getItem('cached_user_profile')) {
+        showToast('প্রোফাইল লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...', 'warning');
+        return;
+      }
+      openSubpage('subWallet');
+    }
+
+    function openAddMoneySafely() {
+      if (!isUserDataReady && !localStorage.getItem('cached_user_profile')) {
+        showToast('প্রোফাইল লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...', 'warning');
+        return;
+      }
+      openSubpage('subAddMoney');
+    }
+
+    // গ্লোবাল এবং জয়েন করা ম্যাচের ব্যক্তিগত নোটিফিকেশন একত্র করে তালিকায় দেখানো
+    function renderNotifications() {
+      const container = document.getElementById('notifListContainer');
+      const badge = document.getElementById('headerNotifBadge');
+
+      const combinedNotifs = [...cacheNotifications, ...cacheUserNotifications];
+      combinedNotifs.sort((a, b) => (b.sentAt || 0) - (a.sentAt || 0));
+
+      if (!combinedNotifs.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="bell"></i>
+            <p>No notifications yet.</p>
+          </div>
+        `;
+        badge.style.display = 'none';
+        lucide.createIcons();
+        return;
+      }
+
+      badge.textContent = combinedNotifs.length;
+      badge.style.display = 'flex';
+
+      container.innerHTML = combinedNotifs.map(n => `
+        <div class="card" style="background: var(--bg-card); border-left: 4px solid ${n.matchId ? 'var(--accent-green)' : 'var(--primary)'}; margin-bottom: 10px;">
+          <h4 style="font-size: 15px; color: var(--text-primary); margin-bottom: 4px;">${escapeHtml(n.title)}</h4>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">${escapeHtml(n.body)}</p>
+          <span style="font-size: 11px; color: var(--text-muted);">${n.sentAt ? new Date(n.sentAt).toLocaleString() : ''}</span>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function markAllNotificationsRead() {
+      document.getElementById('headerNotifBadge').style.display = 'none';
+      showToast('Notifications marked as read.', 'success');
+    }
+
+    function renderTransactions(txs) {
+      const container = document.getElementById('txListContainer');
+      const list = Object.keys(txs).map(k => ({ id: k, ...txs[k] })).reverse();
+
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><i data-lucide="history"></i><p>No transaction history.</p></div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = list.map(t => {
+        const isPos = t.type === 'deposit' || t.type === 'prize' || t.type === 'refund';
+        const amtSign = isPos ? '+' : '-';
+        const color = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+        return `
+          <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">${escapeHtml(t.description || t.type)}</div>
+              <div style="font-size: 11px; color: var(--text-muted);">${t.date ? new Date(t.date).toLocaleString() : ''}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 16px; font-weight: 800; font-family: 'Rajdhani', sans-serif; color: ${color};">${amtSign}৳${t.amount || 0}</div>
+              <span class="pill pill-${t.status === 'completed' ? 'green' : (t.status === 'pending' ? 'orange' : 'red')}" style="font-size: 9px;">${escapeHtml(t.status || 'completed')}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    async function openJoinSheet(matchId) {
+      if (!currentUser) {
+        document.getElementById('authScreen').style.display = 'flex';
+        return;
+      }
+      const match = cacheMatches[matchId];
+      if (!match) return;
+
+      if (match.status === 'Ongoing' || match.status === 'Finished') {
+        showToast('এই ম্যাচটি ইতিমধ্যে শুরু হয়ে গেছে, নতুন জয়েন বন্ধ রয়েছে।', 'warning');
+        return;
+      }
+
+      const totalSlots = Number(match.total_slots) || 48;
+      const joinedCount = Number(match.joined) || 0;
+      const remainingSlots = Math.max(totalSlots - joinedCount, 0);
+
+      if (remainingSlots <= 0) {
+        showToast('এই ম্যাচের সকল স্লট ইতিমধ্যে পূর্ণ হয়ে গেছে!', 'error');
+        return;
+      }
+
+      const uData = currentUserData || JSON.parse(localStorage.getItem('cached_user_profile') || '{}');
+      if (!uData.username && !uData.name) {
+        showToast('আপনার প্রোফাইল তথ্য লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...', 'warning');
+        return;
+      }
+
+      joiningMatchId = matchId;
+      const mType = (match.type || 'Solo').trim();
+
+      document.getElementById('joinSheetMatchTitle').textContent = match.title;
+      document.getElementById('joinSheetTypeBadge').textContent = mType;
+      document.getElementById('joinSheetFee').textContent = match.entry_fee || 0;
+      const userTotal = (Number(uData.deposit) || 0) + (Number(uData.winning) || 0);
+      document.getElementById('joinSheetUserBal').textContent = userTotal;
+      document.getElementById('joinSheetRemainingSlots').textContent = remainingSlots;
+
+      // ম্যাচ রুলস / বিধিনিষেধ লোড ও প্রদর্শন
+      const rulesBox = document.getElementById('joinSheetRulesBox');
+      const rulesText = document.getElementById('joinSheetRulesText');
+      if (match.rules && match.rules.trim()) {
+        rulesText.textContent = match.rules.trim();
+        rulesBox.style.display = 'block';
+      } else {
+        rulesBox.style.display = 'none';
+      }
+
+      // ডাইনামিক প্লেয়ার নেইম ও প্রোফাইল ইউআইডি ইনপুট ফিল্ড তৈরি (Solo/Duo/Squad)
+      const playersContainer = document.getElementById('joinSheetPlayersContainer');
+      let playersHtml = '';
+
+      if (mType.toLowerCase() === 'duo') {
+        playersHtml = `
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); background: var(--bg-card);">
+            <strong style="font-size: 13px; color: var(--primary-dark); display:block; margin-bottom: 8px;">🎮 Player 1 (লিডার - আপনার বিবরণ)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer1_ign" class="form-control" required placeholder="Player 1 গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer1_uid" class="form-control" required placeholder="Player 1 গেম প্রোফাইল UID">
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent-orange); background: var(--bg-card);">
+            <strong style="font-size: 13px; color: var(--accent-orange); display:block; margin-bottom: 8px;">🎮 Player 2 (পার্টনারের বিবরণ)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer2_ign" class="form-control" required placeholder="Player 2 গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer2_uid" class="form-control" required placeholder="Player 2 গেম প্রোফাইল UID">
+            </div>
+          </div>
+        `;
+      } else if (mType.toLowerCase() === 'squad') {
+        playersHtml = `
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); background: var(--bg-card);">
+            <strong style="font-size: 13px; color: var(--primary-dark); display:block; margin-bottom: 8px;">🎮 Player 1 (টিম লিডার - আপনার বিবরণ)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer1_ign" class="form-control" required placeholder="Leader গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer1_uid" class="form-control" required placeholder="Leader গেম Profile UID">
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid #43A047; background: var(--bg-card);">
+            <strong style="font-size: 13px; color: #2E7D32; display:block; margin-bottom: 8px;">🎮 Player 2 (টিমমেট ২)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer2_ign" class="form-control" required placeholder="Player 2 গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer2_uid" class="form-control" required placeholder="Player 2 গেম UID">
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent-orange); background: var(--bg-card);">
+            <strong style="font-size: 13px; color: var(--accent-orange); display:block; margin-bottom: 8px;">🎮 Player 3 (টিমমেট ৩)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer3_ign" class="form-control" required placeholder="Player 3 গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer3_uid" class="form-control" required placeholder="Player 3 গেম UID">
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid #8E24AA; background: var(--bg-card);">
+            <strong style="font-size: 13px; color: #8E24AA; display:block; margin-bottom: 8px;">🎮 Player 4 (টিমমেট ৪)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer4_ign" class="form-control" required placeholder="Player 4 গেম নাম">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer4_uid" class="form-control" required placeholder="Player 4 গেম UID">
+            </div>
+          </div>
+        `;
+      } else {
+        // Solo
+        playersHtml = `
+          <div class="card" style="padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--primary); background: var(--bg-card);">
+            <strong style="font-size: 13px; color: var(--primary-dark); display:block; margin-bottom: 8px;">🎮 Player Details (আপনার বিবরণ)</strong>
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="form-label">In-Game Name (IGN)</label>
+              <input type="text" id="joinPlayer1_ign" class="form-control" required placeholder="আপনার গেম নাম (IGN)">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Game Profile UID (গেম ইউজার আইডি)</label>
+              <input type="text" id="joinPlayer1_uid" class="form-control" required placeholder="আপনার ফ্রি ফায়ার Profile UID">
+            </div>
+          </div>
+        `;
+      }
+      playersContainer.innerHTML = playersHtml;
+
+      const slotSelect = document.getElementById('joinSheetSlotSelect');
+      slotSelect.innerHTML = '<option value="">স্লট লোড হচ্ছে...</option>';
+      document.getElementById('sheetJoinMatch').classList.add('open');
+
+      try {
+        const snap = await db.collection('match_participants').doc(matchId).get();
+        const parts = snap.exists ? snap.data() : {};
+        const takenSlots = new Set();
+        Object.values(parts).forEach(p => {
+          if (p.slot) takenSlots.add(Number(p.slot));
+        });
+
+        const availableSlots = [];
+        for (let i = 1; i <= totalSlots; i++) {
+          if (!takenSlots.has(i)) {
+            availableSlots.push(i);
+          }
+        }
+
+        if (availableSlots.length === 0) {
+          slotSelect.innerHTML = '<option value="">সকল স্লট বুকড হয়ে গেছে</option>';
+          document.getElementById('btnConfirmJoinMatch').disabled = true;
+        } else {
+          document.getElementById('btnConfirmJoinMatch').disabled = false;
+          slotSelect.innerHTML = availableSlots.map(s => 
+            `<option value="${s}">স্লট #${s} (খালি আছে)</option>`
+          ).join('');
+        }
+      } catch (err) {
+        console.error("Error fetching slots:", err);
+        const nextSlot = joinedCount + 1;
+        slotSelect.innerHTML = `<option value="${nextSlot}">স্লট #${nextSlot}</option>`;
+      }
+    }
+
+    async function executeJoinMatch() {
+      const match = cacheMatches[joiningMatchId];
+      if (!match || ['Ongoing', 'Finished', 'Cancelled'].includes(match.status)) {
+        showToast('এই ম্যাচটিতে আর জয়েন করা সম্ভব নয়।', 'error');
+        closeSheet('sheetJoinMatch');
+        return;
+      }
+      if (!currentUser) {
+        showToast('প্রথমে লগইন করুন।', 'warning');
+        return;
+      }
+      const mType = (match.type || 'Solo').trim().toLowerCase();
+      const getP = (num, role) => {
+        const ignEl = document.getElementById(`joinPlayer${num}_ign`);
+        const uidEl = document.getElementById(`joinPlayer${num}_uid`);
+        return { ign: ignEl ? ignEl.value.trim() : '', gameUid: uidEl ? uidEl.value.trim() : '', role };
+      };
+      const playerList = [getP(1, 'Leader'), getP(2, 'Member'), getP(3, 'Member'), getP(4, 'Member')];
+      const expected = mType === 'duo' ? 2 : mType === 'squad' ? 4 : 1;
+      const chosenPlayers = playerList.slice(0, expected);
+      if (chosenPlayers.some(p => !p.ign || !p.gameUid)) {
+        showToast(`দয়া করে ${expected} জন প্লেয়ারেরই IGN এবং Game Profile UID লিখুন!`, 'warning');
+        return;
+      }
+      const slotSelect = document.getElementById('joinSheetSlotSelect');
+      const chosenSlot = Number(slotSelect && slotSelect.value);
+      if (!Number.isInteger(chosenSlot) || chosenSlot < 1) {
+        showToast('একটি বৈধ স্লট নির্বাচন করুন।', 'warning');
+        return;
+      }
+      const btn = document.getElementById('btnConfirmJoinMatch');
+      btn.disabled = true;
+      btn.innerText = 'Joining Slot...';
+      try {
+        const joinCall = cloudFunctions.httpsCallable('joinTournamentMatch');
+        const response = await joinCall({ matchId: joiningMatchId, chosenSlot, players: chosenPlayers, matchType: match.type || 'Solo' });
+        const remainingSlotsAfter = Number(response.data?.remainingSlots) || 0;
+        closeSheet('sheetJoinMatch');
+        showToast(`🎉 আপনি সফলভাবে স্লট #${chosenSlot}-এ জয়েন করেছেন! এখনো ${remainingSlotsAfter}টি স্লট খালি আছে।`, 'success');
+      } catch (err) {
+        const msg = err && err.message ? err.message : 'অজানা সমস্যা';
+        showToast('ম্যাচে জয়েন করা যায়নি: ' + msg, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Confirm & Pay Fee';
+      }
+    }
+
+    function viewRoomCredentials(matchId) {
+      const match = cacheMatches[matchId];
+      if (!match) return;
+
+      document.getElementById('sheetRoomIdVal').textContent = match.room_id || 'Not Set Yet';
+      document.getElementById('sheetRoomPassVal').textContent = match.room_pass || 'Not Set Yet';
+
+      const participantData = match.participants && match.participants[currentUser ? currentUser.uid : ''];
+      let userSlot = null;
+      let playersList = [];
+      let memberCount = 1;
+
+      if (participantData && typeof participantData === 'object') {
+        userSlot = participantData.slot;
+        if (Array.isArray(participantData.players)) {
+          playersList = participantData.players;
+        } else if (participantData.ign) {
+          playersList = [{ ign: participantData.ign, gameUid: 'N/A' }];
+        }
+        memberCount = participantData.playerCount || playersList.length || 1;
+      }
+
+      const totalSlots = Number(match.total_slots) || 48;
+      const joinedCount = Number(match.joined) || 0;
+      const remainingSlots = Math.max(totalSlots - joinedCount, 0);
+
+      document.getElementById('sheetRoomUserSlot').textContent = userSlot ? `স্লট #${userSlot}` : `অংশগ্রহণকারী`;
+      
+      const mType = match.type || 'Solo';
+      const squadBadge = `🛡️ ${mType} Squad [${memberCount} জন প্লেয়ার]`;
+      document.getElementById('sheetRoomTeamBadge').textContent = squadBadge;
+      document.getElementById('sheetRoomSlotsRemaining').textContent = `মোট স্লট: ${totalSlots} | বর্তমানে ${remainingSlots} টি খালি আছে`;
+
+      // প্লেয়ারদের স্টাইলিশ রোস্টার কার্ড তৈরি
+      const rosterContainer = document.getElementById('sheetRoomRosterContainer');
+      if (playersList.length) {
+        rosterContainer.innerHTML = playersList.map((pl, idx) => `
+          <div style="background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; box-shadow: 0 2px 8px var(--shadow);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge badge-blue" style="font-size: 11px; font-weight: 700;">P${idx + 1}</span>
+              <div>
+                <div style="font-size: 16px; font-weight: 800; font-family: 'Rajdhani', sans-serif; color: var(--primary-dark); letter-spacing: 0.5px;">${escapeHtml(pl.ign || 'Player')}</div>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">IGN</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; font-weight: 800; font-family: 'Rajdhani', sans-serif; color: var(--accent-orange); background: #FFF3E0; padding: 2px 8px; border-radius: 6px;">UID: ${escapeHtml(pl.gameUid || 'N/A')}</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Profile UID</div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        rosterContainer.innerHTML = '';
+      }
+
+      document.getElementById('sheetRoomId').classList.add('open');
+    }
+
+    let selectedPayment = 'bkash';
+    function selectPaymentMethod(method) {
+      selectedPayment = method;
+      const bBtn = document.getElementById('btnMethodBkash');
+      const nBtn = document.getElementById('btnMethodNagad');
+      const rBtn = document.getElementById('btnMethodRocket');
+      const numDisplay = document.getElementById('paymentNumberDisplay');
+
+      [bBtn, nBtn, rBtn].forEach(b => {
+        b.style.background = 'var(--bg-surface)';
+        b.style.color = 'var(--text-primary)';
+      });
+
+      if (method === 'bkash') {
+        bBtn.style.background = 'var(--bkash)';
+        bBtn.style.color = '#FFF';
+        numDisplay.textContent = appSettings.bkash_number || '01XXXXXXXXX';
+      } else if (method === 'nagad') {
+        nBtn.style.background = 'var(--nagad)';
+        nBtn.style.color = '#FFF';
+        numDisplay.textContent = appSettings.nagad_number || '01XXXXXXXXX';
+      } else {
+        rBtn.style.background = 'var(--rocket)';
+        rBtn.style.color = '#FFF';
+        numDisplay.textContent = appSettings.rocket_number || '01XXXXXXXXX';
+      }
+    }
+
+    function copyPaymentNumber() {
+      const num = document.getElementById('paymentNumberDisplay').textContent;
+      copyText(num);
+      showToast('Number copied to clipboard!', 'success');
+    }
+
+    async function handleVerifyDeposit(e) {
+      e.preventDefault();
+
+      const uData = currentUserData || JSON.parse(localStorage.getItem('cached_user_profile') || '{}');
+      if (!currentUser || (!uData.username && !uData.name)) {
+        showToast('আপনার প্রোফাইল তথ্য এখনো লোড হয়নি। অনুগ্রহ করে ২-৩ সেকেন্ড পর চেষ্টা করুন।', 'warning');
+        return;
+      }
+
+      const amt = Number(document.getElementById('depAmount').value);
+      const trxId = document.getElementById('depTrxId').value.trim().toUpperCase();
+
+      if (!trxId || amt <= 0) {
+        showToast('সঠিক ডিপোজিট পরিমাণ এবং TrxID লিখুন।', 'warning');
+        return;
+      }
+
+      const minD = Number(appSettings.min_deposit) || 10;
+      if (amt < minD) {
+        showToast(`সর্বনিম্ন ডিপোজিট ৳${minD}`, 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnVerifyDeposit');
+      btn.disabled = true;
+      btn.innerText = 'Submitting Request...';
+
+      try {
+        const uid = currentUser.uid;
+        const uPhone = uData.phone || uData.phoneNumber || 'N/A';
+        const uName = uData.username || uData.name || 'Player';
+
+        const depositCall = cloudFunctions.httpsCallable('createDepositRequest');
+        await depositCall({ amount: amt, trxId, method: selectedPayment });
+
+        document.getElementById('depTrxId').value = '';
+        document.getElementById('depAmount').value = '';
+        closeSubpage('subAddMoney');
+        showToast('ডিপোজিট রিকোয়েস্ট সফল হয়েছে! অ্যাডমিন অনুমোদন করলে ব্যালেন্স যুক্ত হবে।', 'success');
+      } catch (err) {
+        showToast('রিকোয়েস্ট পাঠাতে ব্যর্থ হয়েছে: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Verify & Add Money';
+      }
+    }
+
+    async function handleWithdrawSubmit(e) {
+      e.preventDefault();
+
+      const uData = currentUserData || JSON.parse(localStorage.getItem('cached_user_profile') || '{}');
+      if (!uData.username && !uData.name) {
+        showToast('প্রোফাইল লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...', 'warning');
+        return;
+      }
+
+      const num = document.getElementById('wdNumber').value.trim();
+      const amt = Number(document.getElementById('wdAmount').value);
+      const method = document.querySelector('input[name="wdMethod"]:checked').value;
+
+      const winBal = Number(uData.winning) || 0;
+      const minWd = Number(appSettings.min_withdraw) || 50;
+
+      if (amt < minWd) {
+        showToast(`Minimum withdrawal is ৳${minWd}`, 'warning');
+        return;
+      }
+
+      if (amt > winBal) {
+        showToast('Withdrawal amount exceeds winning balance.', 'error');
+        return;
+      }
+
+      try {
+        const withdrawCall = cloudFunctions.httpsCallable('requestWithdrawal');
+        await withdrawCall({ amount: amt, method, number: num });
+
+        document.getElementById('wdAmount').value = '';
+        document.getElementById('wdNumber').value = '';
+        closeSubpage('subWithdraw');
+        showToast('Withdrawal request submitted for review.', 'success');
+      } catch (err) {
+        showToast('Error requesting withdrawal: ' + err.message, 'error');
+      }
+    }
+
+    async function handleSaveProfile(e) {
+      e.preventDefault();
+      const name = document.getElementById('editName').value.trim();
+      const phone = document.getElementById('editPhone').value.trim();
+
+      if (!name || !phone) {
+        showToast('All fields required', 'warning');
+        return;
+      }
+
+      try {
+        await db.collection('users').doc(currentUser.uid).update({
+          username: name,
+          phone: phone
+        });
+        closeSubpage('subEditProfile');
+        showToast('Profile updated!', 'success');
+      } catch (err) {
+        showToast('Update failed: ' + err.message, 'error');
+      }
+    }
+
+    function switchAuthMode(mode) {
+      const loginForm = document.getElementById('loginForm');
+      const regForm = document.getElementById('registerForm');
+      const tabL = document.getElementById('tabLoginBtn');
+      const tabR = document.getElementById('tabRegisterBtn');
+
+      if (mode === 'login') {
+        loginForm.style.display = 'block';
+        regForm.style.display = 'none';
+        tabL.classList.add('active');
+        tabR.classList.remove('active');
+      } else {
+        loginForm.style.display = 'none';
+        regForm.style.display = 'block';
+        tabL.classList.remove('active');
+        tabR.classList.add('active');
+      }
+      lucide.createIcons();
+    }
+
+    function togglePasswordVisibility(inputId) {
+      const el = document.getElementById(inputId);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    async function handleAuthLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+
+      const btn = document.getElementById('btnLoginSubmit');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Logging in...';
+      }
+
+      try {
+        const userCred = await auth.signInWithEmailAndPassword(email, pass);
+        await registerDeviceSession(userCred.user.uid);
+        showToast('Logged in successfully!', 'success');
+      } catch (err) {
+        const box = document.getElementById('authBox');
+        if (box) {
+          box.style.animation = 'shake 0.4s ease';
+          setTimeout(() => box.style.animation = '', 450);
+        }
+        showToast(err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'Login to Account';
+        }
+      }
+    }
+
+    async function handleAuthRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value;
+      const refCode = document.getElementById('regRefer').value.trim().toUpperCase();
+
+      if (pass.length < 6) {
+        showToast('Password must be at least 6 characters.', 'warning');
+        return;
+      }
+
+      try {
+        const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+        const uid = userCred.user.uid;
+        const newReferCode = 'BDT' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+        let referrerUid = null;
+        if (refCode) {
+          const refSnap = await db.collection('users').where('referCode', '==', refCode).limit(1).get();
+          if (!refSnap.empty) {
+            referrerUid = refSnap.docs[0].id;
+          }
+        }
+
+        // Referral bonuses are granted server-side after account creation.
+        const newSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('my_device_session_id', newSessionId);
+
+        const newUserData = {
+          username: name,
+          email: email,
+          phone: phone,
+          deposit: 0,
+          winning: 0,
+          totalDeposited: 0,
+          referCode: newReferCode,
+          referralCount: 0,
+          referralEarned: 0,
+          referredBy: null,
+          referralBonusApplied: false,
+          banned: false,
+          currentSessionId: newSessionId,
+          joinedAt: Date.now()
+        };
+
+        await db.collection('users').doc(uid).set(newUserData);
+        localStorage.setItem('cached_user_profile', JSON.stringify(newUserData));
+
+        if (refCode) {
+          try {
+            const referralCall = cloudFunctions.httpsCallable('applyReferralBonus');
+            await referralCall({ refCode });
+            const fresh = await db.collection('users').doc(uid).get();
+            if (fresh.exists) {
+              currentUserData = fresh.data();
+              localStorage.setItem('cached_user_profile', JSON.stringify(currentUserData));
+            }
+          } catch (refErr) {
+            console.warn('Referral bonus was not applied:', refErr);
+          }
+        }
+
+        showToast('Account created successfully!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function handleForgotPassword() {
+      const email = prompt('Enter your registered email:');
+      if (email) {
+        try {
+          await auth.sendPasswordResetEmail(email);
+          showToast('Password reset link sent to your email.', 'success');
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      }
+    }
+
+    function handleLogout() {
+      auth.signOut();
+      localStorage.removeItem('my_device_session_id');
+      localStorage.removeItem('cached_user_profile');
+      currentActiveSessionId = null;
+      isUserDataReady = false;
+      showToast('Logged out.', 'default');
+    }
+
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+
+      const tabs = ['home', 'matches', 'results', 'profile'];
+      const idx = tabs.indexOf(tabKey);
+      if (idx !== -1) {
+        document.querySelectorAll('.tab-item')[idx].classList.add('active');
+        const viewId = 'tab' + tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+        document.getElementById(viewId).classList.add('active');
+      }
+
+      if (tabKey === 'matches' && !currentCategoryFilter) {
+        filterMatches(activeMatchTab);
+      }
+      if (tabKey === 'results') {
+        renderResults();
+      }
+      lucide.createIcons();
+    }
+
+    function openSubpage(id) {
+      document.getElementById(id).classList.add('open');
+      if (id === 'subLeaderboard') {
+        loadLeaderboard();
+      }
+      lucide.createIcons();
+    }
+
+    function closeSubpage(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function closeSheet(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function handleSheetBackdropClick(e, sheetId) {
+      if (e.target.id === sheetId) {
+        closeSheet(sheetId);
+      }
+    }
+
+    function copyText(str) {
+      navigator.clipboard.writeText(str);
+    }
+
+    function copyReferralCode() {
+      const code = document.getElementById('referralCodeText').textContent;
+      copyText(code);
+      showToast('Referral code copied!', 'success');
+    }
+
+    function openSupportLink() {
+      const link = appSettings.support_link || 'https://t.me/';
+      window.open(link, '_blank');
+    }
+
+    function openTutorial(type) {
+      let link = '#';
+      if (type === 'addMoney') link = appSettings.how_to_add_money_link;
+      if (type === 'roomId') link = appSettings.how_to_get_room_id_link;
+      if (type === 'joinMatch') link = appSettings.how_to_play_link;
+      if (link) window.open(link, '_blank');
+      else showToast('Tutorial link not configured.', 'warning');
+    }
+
+    function handleAvatarSecretTap() {
+      secretTapCount++;
+      clearTimeout(secretTapTimer);
+      secretTapTimer = setTimeout(() => {
+        secretTapCount = 0;
+      }, 5000);
+
+      if (secretTapCount >= 10) {
+        secretTapCount = 0;
+        document.body.style.filter = 'brightness(1.5)';
+        setTimeout(() => document.body.style.filter = '', 150);
+        document.getElementById('sheetAdminSecret').classList.add('open');
+      }
+    }
+
+    // অ্যাডমিন ভেরিফিকেশন: কোডে কোনো হার্ডকোডেড ইমেইল নেই
+    async function handleAdminSecretLogin() {
+      const email = document.getElementById('secretAdminEmail').value.trim();
+      const pass = document.getElementById('secretAdminPass').value;
+
+      try {
+        // ১. Firebase Authentication দিয়ে লগইন
+        const userCred = await auth.signInWithEmailAndPassword(email, pass);
+
+        // ২. Firebase Rules অনুযায়ী অ্যাডমিন অধিকার সার্ভার থেকে যাচাই
+        await db.collection('admin_credentials').doc('auth').get();
+
+        sessionStorage.setItem('admin_auth_token', 'active_session');
+        window.location.href = 'admin.html';
+      } catch (err) {
+        if (auth.currentUser) {
+          await auth.signOut();
+        }
+        sessionStorage.removeItem('admin_auth_token');
+        
+        let errMsg = err.message;
+        if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
+          errMsg = 'Access Denied: এই ইমেইলটি Firebase Rules-এ অনুমোদিত নয়!';
+        }
+        showToast('Verification failed: ' + errMsg, 'error');
+      }
+    }
+
+    function loadLeaderboard() {
+      const listContainer = document.getElementById('leaderboardList');
+      listContainer.innerHTML = '<div class="skeleton" style="height: 60px; margin-bottom: 8px;"></div><div class="skeleton" style="height: 60px;"></div>';
+
+      const renderList = (users) => {
+        if (!users.length) {
+          listContainer.innerHTML = `<div class="empty-state"><p>No ranked players yet.</p></div>`;
+          return;
+        }
+
+        listContainer.innerHTML = users.map((u, i) => {
+          const isMe = currentUser && u.uid === currentUser.uid;
+          let rankBadge = `#${i + 1}`;
+          let rankBg = 'var(--bg-card)';
+          if (i === 0) { rankBadge = '🥇 1st'; rankBg = '#FFF8E1'; }
+          else if (i === 1) { rankBadge = '🥈 2nd'; rankBg = '#F5F5F5'; }
+          else if (i === 2) { rankBadge = '🥉 3rd'; rankBg = '#FFF3E0'; }
+
+          return `
+            <div class="card" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 8px; background: ${isMe ? 'var(--primary-pale)' : rankBg}; border: 1px solid ${isMe ? 'var(--primary)' : 'var(--border)'};">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-weight: 700; font-size: 14px; font-family: 'Rajdhani', sans-serif;">${rankBadge}</span>
+                <div>
+                  <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${escapeHtml(u.username || 'Player')} ${isMe ? '(You)' : ''}</div>
+                  <div style="font-size: 11px; color: var(--text-muted);">${u.phone ? u.phone.substring(0, 3) + '****' + u.phone.slice(-3) : ''}</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 800; font-family: 'Rajdhani', sans-serif; color: var(--accent-green);">
+                ৳${u.winning || 0}
+              </div>
+            </div>
+          `;
+        }).join('');
+      };
+
+      db.collection('users').orderBy('winning', 'desc').limit(10).get()
+        .then((snap) => {
+          const users = snap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+          renderList(users);
+        })
+        .catch((err) => {
+          console.warn('Leaderboard index warning, falling back to client sort:', err);
+          db.collection('users').limit(50).get().then((snap) => {
+            const users = snap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+            users.sort((a, b) => (Number(b.winning) || 0) - (Number(a.winning) || 0));
+            renderList(users.slice(0, 10));
+          }).catch(e => {
+            listContainer.innerHTML = `<div class="empty-state"><p>Error loading leaderboard.</p></div>`;
+          });
+        });
+    }
+
+    function handleNotificationIconClick() {
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            showToast('নোটিফিকেশন সক্রিয় করা হয়েছে!', 'success');
+            pushToDeviceNotification('BD Tour', 'নোটিফিকেশন সফলভাবে চালু হয়েছে!');
+          }
+        });
+      }
+      openSubpage('subNotifications');
+    }
+
+    function pushToDeviceNotification(title, body) {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          payload: { title, body }
+        });
+      } else if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.showNotification(title, {
+            body: body,
+            icon: 'https://cdn-icons-png.flaticon.com/512/3408/3408590.png',
+            vibrate: [300, 100, 300]
+          });
+        });
+      } else {
+        new Notification(title, {
+          body: body,
+          icon: 'https://cdn-icons-png.flaticon.com/512/3408/3408590.png'
+        });
+      }
+    }
+
+    function listenToUserSpecificNotifications(uid) {
+      const launchTime = Date.now();
+      let isFirstSnap = true;
+      const unsub = db.collection('user_notifications').doc(uid).collection('items').onSnapshot((snap) => {
+        if (isFirstSnap) {
+          isFirstSnap = false;
+          return;
+        }
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const notif = change.doc.data();
+            if (notif && notif.sentAt && notif.sentAt >= launchTime) {
+              pushToDeviceNotification(notif.title, notif.body);
+            }
+          }
+        });
+      }, err => console.error('Personal notif listener error:', err));
+      activeListeners.push(unsub);
+    }
+
+    function initWebPushNotifications() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => {
+            console.log('SW Registered successfully:', reg.scope);
+          })
+          .catch((err) => {
+            console.error('SW Registration Failed:', err);
+          });
+      }
+
+      const launchTime = Date.now();
+      let isFirstSnap = true;
+      const unsub = db.collection('notifications').onSnapshot((snap) => {
+        if (isFirstSnap) {
+          isFirstSnap = false;
+          return;
+        }
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const notif = change.doc.data();
+            if (notif && notif.sentAt && notif.sentAt >= launchTime) {
+              pushToDeviceNotification(notif.title || 'BD Tour Update', notif.body || 'নতুন নোটিফিকেশন এসেছে!');
+            }
+          }
+        });
+      }, err => console.error('Global notif listener error:', err));
+      activeListeners.push(unsub);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initWebPushNotifications();
+    });
+  </script>
+</body>
+</html>

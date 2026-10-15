@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BD Tour Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-body: #F5F8FF;
+      --bg-card: #FFFFFF;
+      --bg-surface: #EEF3FC;
+      --primary: #1565C0;
+      --primary-dark: #0D47A1;
+      --primary-light: #42A5F5;
+      --primary-pale: #E8F1FE;
+      --sidebar-w: 260px;
+      --sidebar-bg: #1565C0;
+      --accent-red: #E53935;
+      --accent-gold: #FFB300;
+      --accent-green: #2E7D32;
+      --accent-orange: #F57C00;
+      --text-primary: #10223B;
+      --text-secondary: #4A6280;
+      --text-muted: #8CA0B8;
+      --border: #DCE6F5;
+      --shadow: rgba(21,101,192,0.08);
+      --bkash: #E2136E;
+      --nagad: #F7941D;
+      --rocket: #8C3494;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6, .brand-font {
+      font-family: 'Rajdhani', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    #adminContainer {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      color: #FFF;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.06);
+    }
+    .sidebar-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .logo-badge {
+      background: #FFFFFF;
+      color: var(--primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 10px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      color: rgba(255,255,255,0.85);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: #FFF;
+    }
+    .nav-item.active {
+      background: rgba(255,255,222,0.22);
+      color: #FFF;
+      font-weight: 700;
+      border-left: 4px solid #FFFFFF;
+      border-radius: 0 10px 10px 0;
+    }
+    .nav-item i, .nav-item svg {
+      width: 18px;
+      height: 18px;
+    }
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-body);
+    }
+    .top-header {
+      height: 60px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 2px 10px var(--shadow);
+      z-index: 50;
+    }
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px var(--shadow);
+      margin-bottom: 20px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 4px 18px var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-val {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text-primary);
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #FFF;
+      box-shadow: 0 4px 12px rgba(21,101,192,0.25);
+    }
+    .btn-secondary {
+      background: var(--primary-pale);
+      color: var(--primary-dark);
+      border: 1px solid var(--border);
+    }
+    .btn-success { background: var(--accent-green); color: #FFF; }
+    .btn-danger { background: var(--accent-red); color: #FFF; }
+    .btn-warning { background: var(--accent-orange); color: #FFF; }
+    .btn-full { width: 100%; }
+    .form-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+      text-transform: uppercase;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(21,101,192,0.1);
+    }
+    .data-table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-card);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .data-table th {
+      background: var(--bg-surface);
+      padding: 12px 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-blue { background: var(--primary-pale); color: var(--primary); }
+    .badge-green { background: #E8F5E9; color: var(--accent-green); }
+    .badge-orange { background: #FFF3E0; color: var(--accent-orange); }
+    .badge-red { background: #FFEBEE; color: var(--accent-red); }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 34, 59, 0.45);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(2px);
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(21,101,192,0.15);
+      transform: scale(0.95);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.open .modal-card {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(21,101,192,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      pointer-events: auto;
+    }
+    .toast-success { border-left: 4px solid var(--accent-green); color: var(--accent-green); }
+    .toast-error { border-left: 4px solid var(--accent-red); color: var(--accent-red); }
+    .toast-warning { border-left: 4px solid var(--accent-orange); color: var(--accent-orange); }
+    .toast-default { border-left: 4px solid var(--primary); color: var(--primary); }
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-body);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 30px var(--shadow);
+      text-align: center;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state i, .empty-state svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.3;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .chart-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div id="adminLoginGate" class="login-overlay">
+    <div class="login-box" id="loginBox">
+      <div class="logo-badge" style="margin: 0 auto 12px auto; width: 48px; height: 48px; font-size: 22px; background: var(--primary); color: #FFF;">BD</div>
+      <h2 style="font-size: 24px; color: var(--primary-dark); margin-bottom: 4px;">BD Tour Admin</h2>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Administrative Control Management</p>
+
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Admin Email</label>
+          <input type="email" id="adminEmail" class="form-control" required placeholder="Enter Admin Email" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="adminPassword" class="form-control" required placeholder="••••••••">
+        </div>
+        <button type="submit" id="btnAdminSubmit" class="btn btn-primary btn-full" style="padding: 12px; margin-top: 10px;">Authorize Access</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="adminContainer">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-badge">BD</div>
+        <div>
+          <h3 style="font-size: 18px; line-height: 1.1;">RDX BD TOUR</h3>
+          <span style="font-size: 11px; opacity: 0.8; letter-spacing: 1px;">CONTROL PANEL</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="switchSection('dashboard', this)">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('matches', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6" y1="12" x2="10" y2="12"></line>
+            <line x1="8" y1="10" x2="8" y2="14"></line>
+            <line x1="15" y1="13" x2="15.01" y2="13"></line>
+            <line x1="18" y1="11" x2="18.01" y2="11"></line>
+            <rect x="2" y="6" width="20" height="12" rx="4"></rect>
+          </svg>
+          <span>Matches</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('categories', this)">
+          <i data-lucide="grid-3x3"></i>
+          <span>Categories</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('sliders', this)">
+          <i data-lucide="images"></i>
+          <span>Sliders</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('users', this)">
+          <i data-lucide="users"></i>
+          <span>Users</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('withdrawals', this)">
+          <i data-lucide="arrow-down-to-line"></i>
+          <span>Withdrawals</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('deposits', this)">
+          <i data-lucide="inbox"></i>
+          <span>Deposits (Auto Pay)</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('notifications', this)">
+          <i data-lucide="bell"></i>
+          <span>Notifications</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('announcements', this)">
+          <i data-lucide="megaphone"></i>
+          <span>Announcements</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('stats', this)">
+          <i data-lucide="bar-chart-3"></i>
+          <span>App Stats</span>
+        </div>
+        <div class="nav-item" onclick="switchSection('settings', this)">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </div>
+      </nav>
+      <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.15);">
+        <button class="btn btn-full" onclick="handleAdminLogout()" style="background: rgba(255,255,255,0.15); color: #FFF;">
+          <i data-lucide="log-out" style="width: 16px;"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <button class="mobile-menu-btn" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+          <h2 id="sectionTitle" style="font-size: 20px; font-weight: 700;">Dashboard</h2>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);" id="adminUserBadge">Admin</span>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <section id="secDashboard">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: var(--primary-pale); color: var(--primary);"><i data-lucide="users"></i></div>
+              <div>
+                <div class="stat-val" id="dashTotalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #E8F5E9; color: var(--accent-green);"><i data-lucide="wallet"></i></div>
+              <div>
+                <div class="stat-val" id="dashTotalDeposits">৳0</div>
+                <div class="stat-label">Total Deposits</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #FFF3E0; color: var(--accent-orange);"><i data-lucide="clock"></i></div>
+              <div>
+                <div class="stat-val" id="dashPendingWd">0</div>
+                <div class="stat-label">Pending Withdrawals</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #FFEBEE; color: var(--accent-red);"><i data-lucide="flame"></i></div>
+              <div>
+                <div class="stat-val" id="dashActiveMatches">0</div>
+                <div class="stat-label">Active Matches</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;" class="chart-grid">
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Last 7 Days Financial Flow</h3>
+              <canvas id="barFinanceChart" height="200"></canvas>
+            </div>
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Revenue Breakdown</h3>
+              <canvas id="doughnutRatioChart" height="200"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size: 16px; margin-bottom: 14px;">Recent System Notifications</h3>
+            <div id="dashRecentActivity"></div>
+          </div>
+        </section>
+
+        <section id="secMatches" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="matchSearchInput" class="form-control" placeholder="Search match..." style="width: 240px;" oninput="renderMatchesTable()">
+            </div>
+            <button class="btn btn-primary" onclick="openCreateMatchModal()"><i data-lucide="plus"></i> Create Match</button>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Category</th>
+                  <th>Schedule</th>
+                  <th>Type / Map</th>
+                  <th>Slots</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="matchesTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="secCategories" style="display: none;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+            <button class="btn btn-primary" onclick="openModal('modalCategory')"><i data-lucide="plus"></i> Add Category</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;" id="adminCatGrid"></div>
+        </section>
+
+        <section id="secSliders" style="display: none;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+            <button class="btn btn-primary" onclick="openModal('modalSlider')"><i data-lucide="plus"></i> Add Slider</button>
+          </div>
+          <div id="adminSliderList"></div>
+        </section>
+
+        <section id="secUsers" style="display: none;">
+          <div class="card" style="padding: 14px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
+            <input type="text" id="userSearchInput" class="form-control" placeholder="Search by name, email, or phone..." oninput="renderUsersTable()">
+            <select id="userFilterSelect" class="form-control" style="width: 160px;" onchange="renderUsersTable()">
+              <option value="all">All Users</option>
+              <option value="active">Active Only</option>
+              <option value="banned">Banned Only</option>
+            </select>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Deposit</th>
+                  <th>Winning</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="secWithdrawals" style="display: none;">
+          <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <button class="btn btn-secondary active" onclick="filterWithdrawals('all', this)">All</button>
+            <button class="btn btn-secondary" onclick="filterWithdrawals('pending', this)">Pending</button>
+            <button class="btn btn-secondary" onclick="filterWithdrawals('completed', this)">Completed</button>
+            <button class="btn btn-secondary" onclick="filterWithdrawals('rejected', this)">Rejected</button>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Number</th>
+                  <th>Requested Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="withdrawTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="secDeposits" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <input type="text" id="depositSearchInput" class="form-control" placeholder="Search TrxID..." style="width: 240px;" oninput="renderDepositsTable()">
+            <button class="btn btn-primary" onclick="openModal('modalAddTrx')"><i data-lucide="plus"></i> Add TrxID Manually</button>
+          </div>
+          <div class="data-table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>TrxID</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>User (Phone)</th>
+                  <th>Date & Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="depositsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="secNotifications" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="chart-grid">
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Broadcast Notification</h3>
+              <form onsubmit="handleSendNotification(event)">
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" id="notifTitle" class="form-control" required placeholder="e.g. Free Tournament Tonight!">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Message</label>
+                  <textarea id="notifBody" class="form-control" rows="4" required placeholder="Write message to all players..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Send Notification</button>
+              </form>
+            </div>
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Notification Logs</h3>
+              <div id="adminNotifHistory"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="secAnnouncements" style="display: none;">
+          <div class="card" style="max-width: 600px;">
+            <h3 style="font-size: 16px; margin-bottom: 14px;">Global Modal Announcement</h3>
+            <form onsubmit="handleSaveAnnouncement(event)">
+              <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="announcementActive" style="width: 18px; height: 18px;">
+                <label for="announcementActive" class="form-label" style="margin-bottom: 0;">Show Announcement Popup</label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" id="adminAnnTitle" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Body Text</label>
+                <textarea id="adminAnnBody" class="form-control" rows="5" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Announcement</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="secStats" style="display: none;">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #E8F5E9; color: var(--accent-green);"><i data-lucide="trending-up"></i></div>
+              <div>
+                <div class="stat-val" id="statRev">৳0</div>
+                <div class="stat-label">Total Revenue</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #FFEBEE; color: var(--accent-red);"><i data-lucide="trending-down"></i></div>
+              <div>
+                <div class="stat-val" id="statPayout">৳0</div>
+                <div class="stat-label">Total Payout</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: var(--primary-pale); color: var(--primary);"><i data-lucide="dollar-sign"></i></div>
+              <div>
+                <div class="stat-val" id="statNetProfit">৳0</div>
+                <div class="stat-label">Net Profit</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #FFF3E0; color: var(--accent-orange);"><i data-lucide="gamepad-2"></i></div>
+              <div>
+                <div class="stat-val" id="statJoins">0</div>
+                <div class="stat-label">Match Joins</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="font-size: 16px; margin-bottom: 14px;">30-Day Revenue Trend</h3>
+            <canvas id="lineTrendChart" height="240"></canvas>
+          </div>
+        </section>
+
+        <section id="secSettings" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="chart-grid">
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Payment Phone Numbers</h3>
+              <div class="form-group">
+                <label class="form-label">bKash Personal Number</label>
+                <input type="text" id="setBkash" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nagad Personal Number</label>
+                <input type="text" id="setNagad" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Rocket Personal Number</label>
+                <input type="text" id="setRocket" class="form-control">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label class="form-label">Min Deposit (৳)</label>
+                  <input type="number" id="setMinDep" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Min Withdrawal (৳)</label>
+                  <input type="number" id="setMinWd" class="form-control">
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">App Branding & Notice</h3>
+              <div class="form-group">
+                <label class="form-label">App Name</label>
+                <input type="text" id="setAppName" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tagline</label>
+                <input type="text" id="setAppTagline" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Support Link</label>
+                <input type="text" id="setSupportLink" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Marquee Notice</label>
+                <textarea id="setNotice" class="form-control" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Tutorial Video URLs</h3>
+              <div class="form-group">
+                <label class="form-label">How to Add Money Link</label>
+                <input type="url" id="setHowToAdd" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">How to Get Room ID Link</label>
+                <input type="url" id="setHowToRoom" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">How to Join Tournament Link</label>
+                <input type="url" id="setHowToPlay" class="form-control">
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size: 16px; margin-bottom: 14px;">Referral System & Control</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                  <label class="form-label">Referrer Bonus (৳)</label>
+                  <input type="number" id="setRefReferrer" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Referee Bonus (৳)</label>
+                  <input type="number" id="setRefReferee" class="form-control">
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; color: var(--accent-red); font-weight: 700;">
+                  <input type="checkbox" id="setMaintenance" style="width: 20px; height: 20px;">
+                  Enable Maintenance Mode (Blocks Users)
+                </label>
+              </div>
+              <button class="btn btn-primary btn-full" onclick="saveAllSettings()" style="margin-top: 16px;">Save All Settings</button>
+            </div>
+          </div>
+
+          <div class="card" style="border: 2px solid var(--accent-red); margin-top: 20px;">
+            <h3 style="font-size: 16px; color: var(--accent-red); margin-bottom: 14px;">Security & Administrator Password</h3>
+            <form onsubmit="handleChangeAdminPassword(event)" style="max-width: 400px; margin-bottom: 20px;">
+              <div class="form-group">
+                <label class="form-label">New Admin Password</label>
+                <input type="password" id="newAdminPass" class="form-control" required minlength="8">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" id="confirmAdminPass" class="form-control" required minlength="8">
+              </div>
+              <button type="submit" class="btn btn-danger">Update Password</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalMatch">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalMatchTitle">Create Tournament Match</h3>
+        <button onclick="closeModal('modalMatch')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleSaveMatch(event)">
+        <input type="hidden" id="matchEditId">
+        <div class="form-group">
+          <label class="form-label">Match Title</label>
+          <input type="text" id="mTitle" class="form-control" required placeholder="e.g. Free Fire Bermuda Clash #42">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="mCategory" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select id="mType" class="form-control" onchange="handleMatchTypeChange(this.value)">
+              <option value="Solo">Solo</option>
+              <option value="Duo">Duo</option>
+              <option value="Squad">Squad</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Map</label>
+            <input type="text" id="mMap" class="form-control" placeholder="Bermuda / Kalahari">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Slots</label>
+            <input type="number" id="mSlots" class="form-control" value="48" required>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="mDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Time</label>
+            <input type="time" id="mTime" class="form-control" required>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Entry Fee (৳)</label>
+            <input type="number" id="mFee" class="form-control" value="20" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Prize (৳)</label>
+            <input type="number" id="mPrize" class="form-control" value="500" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Per Kill (৳)</label>
+            <input type="number" id="mPerKill" class="form-control" value="5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Banner Image URL</label>
+          <input type="url" id="mImg" class="form-control" placeholder="https://..." oninput="updateMatchImgPreview(this.value)">
+          <div id="matchImgPreview" style="margin-top: 8px; height: 100px; border-radius: 10px; background-size: cover; background-position: center; display: none;"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Room ID</label>
+            <input type="text" id="mRoomId" class="form-control" placeholder="Optional">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Room Password</label>
+            <input type="text" id="mRoomPass" class="form-control" placeholder="Optional">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">1st Place ৳</label>
+            <input type="number" id="mP1" class="form-control" value="250">
+          </div>
+          <div class="form-group">
+            <label class="form-label">2nd Place ৳</label>
+            <input type="number" id="mP2" class="form-control" value="150">
+          </div>
+          <div class="form-group">
+            <label class="form-label">3rd Place ৳</label>
+            <input type="number" id="mP3" class="form-control" value="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Match Rules / গেমের নিয়মাবলী ও বিধিনিষেধ (কি কি ব্যবহার করা যাবে বা যাবে না)</label>
+          <textarea id="mRules" class="form-control" rows="3" placeholder="যেমন: Gun Skin OFF, No Grenade, Emulator নিষিদ্ধ, Roof Camping নট অ্যালাউড..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="padding: 12px;">Save Match</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalParticipants">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Match Participants</h3>
+        <button onclick="closeModal('modalParticipants')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <div id="participantsListContent"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalRoom">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Update Room Credentials</h3>
+        <button onclick="closeModal('modalRoom')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleSaveRoom(event)">
+        <input type="hidden" id="roomMatchId">
+        <div class="form-group">
+          <label class="form-label">Room ID</label>
+          <input type="text" id="roomInputId" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Room Password</label>
+          <input type="text" id="roomInputPass" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Broadcast Room Credentials</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalPrize">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Distribute Match Prizes</h3>
+        <button onclick="closeModal('modalPrize')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleDistributePrizes(event)">
+        <input type="hidden" id="prizeMatchId">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">Select winners to distribute prize funds directly to their winning balance.</p>
+        <div class="form-group">
+          <label class="form-label">1st Place Winner</label>
+          <select id="prizeWinner1" class="form-control" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">2nd Place Winner</label>
+          <select id="prizeWinner2" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">3rd Place Winner</label>
+          <select id="prizeWinner3" class="form-control"></select>
+        </div>
+        <button type="submit" class="btn btn-success btn-full">Finalize & Distribute</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalCategory">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Add Category</h3>
+        <button onclick="closeModal('modalCategory')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleAddCategory(event)">
+        <div class="form-group">
+          <label class="form-label">Category Name</label>
+          <input type="text" id="catNameInput" class="form-control" required placeholder="e.g. Free Fire">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image URL</label>
+          <input type="url" id="catImgInput" class="form-control" required placeholder="https://...">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Category</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalSlider">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Add Banner Slider</h3>
+        <button onclick="closeModal('modalSlider')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleAddSlider(event)">
+        <div class="form-group">
+          <label class="form-label">Image URL</label>
+          <input type="url" id="sliderImgInput" class="form-control" required placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Click Link (Optional)</label>
+          <input type="url" id="sliderLinkInput" class="form-control" placeholder="https://...">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Add Slider</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalAddTrx">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Add Auto-Pay TrxID</h3>
+        <button onclick="closeModal('modalAddTrx')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleAddTrx(event)">
+        <div class="form-group">
+          <label class="form-label">Transaction ID (TrxID)</label>
+          <input type="text" id="newTrxId" class="form-control" required style="text-transform: uppercase;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" id="newTrxAmount" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Save TrxID</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalUserBalance">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Adjust User Balance</h3>
+        <button onclick="closeModal('modalUserBalance')" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+      </div>
+      <form onsubmit="handleAdjustBalance(event)">
+        <input type="hidden" id="balUserId">
+        <div class="form-group">
+          <label class="form-label">Target Wallet</label>
+          <select id="balTargetWallet" class="form-control">
+            <option value="deposit">Deposit Balance</option>
+            <option value="winning">Winning Balance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Action</label>
+          <select id="balActionType" class="form-control">
+            <option value="add">Add Funds (+)</option>
+            <option value="deduct">Deduct Funds (-)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" id="balAmount" class="form-control" required min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason / Reference</label>
+          <input type="text" id="balReason" class="form-control" required placeholder="Admin manual adjustment">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Apply Balance Adjustment</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEf2W-WKMbN4rafady6hdW2lNeQh9m7qA",
+      authDomain: "play-ff-income.firebaseapp.com",
+      projectId: "play-ff-income",
+      storageBucket: "play-ff-income.firebasestorage.app",
+      messagingSenderId: "43224866906",
+      appId: "1:43224866906:web:8b3fa564be1a1831f67863",
+      measurementId: "G-S8H7VRQCM5"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let dataMatches = {};
+    let dataUsers = {};
+    let dataCategories = {};
+    let dataSliders = {};
+    let dataWithdrawals = {};
+    let dataAutoPay = {};
+    let dataNotifications = {};
+    let dataSettings = {};
+    let activeListeners = [];
+
+    let chartFinance = null;
+    let chartRatio = null;
+    let chartTrend = null;
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(msg, type = 'default') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      let icon = 'info';
+      if (type === 'success') icon = 'check-circle';
+      if (type === 'error') icon = 'alert-circle';
+      if (type === 'warning') icon = 'alert-triangle';
+
+      toast.innerHTML = `<i data-lucide="${icon}" style="width: 18px; height: 18px;"></i><span>${escapeHtml(msg)}</span>`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3000);
+    }
+
+    // অ্যাডমিন ভেরিফিকেশন: কোডে কোনো হার্ডকোডেড ইমেইল নেই
+    // শুধু Firebase Authentication এবং Firebase Rules এ সেইম ইমেইল মিললেই প্যানেল আনলক হবে
+    auth.onAuthStateChanged(async (user) => {
+      const sessionToken = sessionStorage.getItem('admin_auth_token');
+      if (user && (sessionToken === 'active_session' || sessionToken === 'secret_granted')) {
+        try {
+          // Firebase Rules দিয়ে অ্যাডমিন অধিকার সার্ভার থেকে যাচাই
+          await db.collection('admin_credentials').doc('auth').get();
+          document.getElementById('adminLoginGate').style.display = 'none';
+          document.getElementById('adminUserBadge').innerText = user.email || 'Admin';
+          loadAllData();
+          return;
+        } catch (err) {
+          console.warn("Rules authorization failed:", err);
+          sessionStorage.removeItem('admin_auth_token');
+          await auth.signOut();
+        }
+      }
+      document.getElementById('adminLoginGate').style.display = 'flex';
+    });
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass = document.getElementById('adminPassword').value;
+
+      const submitBtn = document.getElementById('btnAdminSubmit');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Verifying Credentials...";
+      }
+
+      try {
+        // ১. Firebase Authentication এর মাধ্যমে লগইন
+        const userCred = await auth.signInWithEmailAndPassword(email, pass);
+
+        // ২. Firebase Rules অনুযায়ী এই অ্যাকাউন্ট অ্যাডমিন কিনা সরাসরি সার্ভার থেকে যাচাই
+        await db.collection('admin_credentials').doc('auth').get();
+
+        sessionStorage.setItem('admin_auth_token', 'active_session');
+
+        document.getElementById('adminLoginGate').style.display = 'none';
+        document.getElementById('adminUserBadge').innerText = userCred.user.email;
+        loadAllData();
+
+        showToast('Admin authorized successfully!', 'success');
+      } catch (err) {
+        // যদি Firebase Rules রিজেক্ট করে তবে সাথে সাথে সাইন-আউট করা
+        if (auth.currentUser) {
+          await auth.signOut();
+        }
+        sessionStorage.removeItem('admin_auth_token');
+
+        const box = document.getElementById('loginBox');
+        if (box) {
+          box.style.animation = 'shake 0.4s ease';
+          setTimeout(() => box.style.animation = '', 450);
+        }
+
+        let errMsg = err.message;
+        if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
+          errMsg = 'Access Denied: আপনার ইমেইলটি Firebase Rules-এ অ্যাডমিন হিসেবে অনুমোদিত নয়!';
+        } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+          errMsg = 'ভুল ইমেইল বা পাসওয়ার্ড! Firebase Authentication-এর সঠিক তথ্য দিন।';
+        }
+        showToast(errMsg, 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Authorize Access";
+        }
+      }
+    }
+
+    function handleAdminLogout() {
+      sessionStorage.removeItem('admin_auth_token');
+      auth.signOut();
+      window.location.reload();
+    }
+
+    function loadAllData() {
+      activeListeners.forEach(unsub => { if (typeof unsub === 'function') unsub(); });
+      activeListeners = [];
+
+      // matches collection
+      activeListeners.push(
+        db.collection('matches').onSnapshot(snap => {
+          dataMatches = {};
+          snap.forEach(doc => { dataMatches[doc.id] = doc.data(); });
+          renderMatchesTable();
+          updateDashboard();
+          updateAppStats();
+        }, err => console.error("Matches listener error:", err))
+      );
+
+      // users collection
+      activeListeners.push(
+        db.collection('users').onSnapshot(snap => {
+          dataUsers = {};
+          snap.forEach(doc => { dataUsers[doc.id] = doc.data(); });
+          renderUsersTable();
+          updateDashboard();
+          updateAppStats();
+        }, err => console.error("Users listener error:", err))
+      );
+
+      // categories collection
+      activeListeners.push(
+        db.collection('categories').onSnapshot(snap => {
+          dataCategories = {};
+          snap.forEach(doc => { dataCategories[doc.id] = doc.data(); });
+          renderCategories();
+          populateCategoryDropdown();
+        }, err => console.error("Categories listener error:", err))
+      );
+
+      // sliders collection
+      activeListeners.push(
+        db.collection('sliders').onSnapshot(snap => {
+          dataSliders = {};
+          snap.forEach(doc => { dataSliders[doc.id] = doc.data(); });
+          renderSliders();
+        }, err => console.error("Sliders listener error:", err))
+      );
+
+      // withdrawals collection
+      activeListeners.push(
+        db.collection('withdrawals').onSnapshot(snap => {
+          dataWithdrawals = {};
+          snap.forEach(doc => { dataWithdrawals[doc.id] = doc.data(); });
+          renderWithdrawalsTable();
+          updateDashboard();
+          updateAppStats();
+        }, err => console.error("Withdrawals listener error:", err))
+      );
+
+      // Auto_Pay collection
+      activeListeners.push(
+        db.collection('Auto_Pay').onSnapshot(snap => {
+          dataAutoPay = {};
+          snap.forEach(doc => { dataAutoPay[doc.id] = doc.data(); });
+          renderDepositsTable();
+          updateDashboard();
+          updateAppStats();
+        }, err => console.error("Auto_Pay listener error:", err))
+      );
+
+      // notifications collection
+      activeListeners.push(
+        db.collection('notifications').onSnapshot(snap => {
+          dataNotifications = {};
+          snap.forEach(doc => { dataNotifications[doc.id] = doc.data(); });
+          renderNotifHistory();
+          renderRecentActivity();
+        }, err => console.error("Notifications listener error:", err))
+      );
+
+      // app_settings collection (doc 'config')
+      activeListeners.push(
+        db.collection('app_settings').doc('config').onSnapshot(doc => {
+          dataSettings = doc.exists ? doc.data() : {};
+          populateSettings();
+        }, err => console.error("Settings listener error:", err))
+      );
+    }
+
+    function switchSection(secKey, element) {
+      document.querySelectorAll('.sidebar-nav .nav-item').forEach(i => i.classList.remove('active'));
+      if (element) element.classList.add('active');
+
+      const secIds = ['Dashboard', 'Matches', 'Categories', 'Sliders', 'Users', 'Withdrawals', 'Deposits', 'Notifications', 'Announcements', 'Stats', 'Settings'];
+      secIds.forEach(id => {
+        const el = document.getElementById('sec' + id);
+        if (el) el.style.display = 'none';
+      });
+
+      const targetId = 'sec' + secKey.charAt(0).toUpperCase() + secKey.slice(1);
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.style.display = 'block';
+
+      document.getElementById('sectionTitle').textContent = secKey.charAt(0).toUpperCase() + secKey.slice(1);
+
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+      lucide.createIcons();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function updateDashboard() {
+      const totalUsers = Object.keys(dataUsers).length;
+      document.getElementById('dashTotalUsers').textContent = totalUsers;
+
+      let totalDepositedAmt = 0;
+      Object.values(dataUsers).forEach(u => {
+        totalDepositedAmt += (Number(u.totalDeposited) || Number(u.deposit) || 0);
+      });
+      document.getElementById('dashTotalDeposits').textContent = '৳' + totalDepositedAmt;
+
+      const pendingWdCount = Object.values(dataWithdrawals).filter(w => w.status === 'pending').length;
+      document.getElementById('dashPendingWd').textContent = pendingWdCount;
+
+      const activeMatchesCount = Object.values(dataMatches).filter(m => m.status === 'Ongoing' || m.status === 'Upcoming').length;
+      document.getElementById('dashActiveMatches').textContent = activeMatchesCount;
+
+      renderDashboardCharts(totalDepositedAmt);
+      checkAndAutoDeleteExpiredMatches();
+    }
+
+    function renderDashboardCharts(totalDep) {
+      let totalPayout = 0;
+      Object.values(dataWithdrawals).forEach(w => {
+        if (w.status === 'completed') totalPayout += Number(w.amount) || 0;
+      });
+      const netProfit = Math.max(totalDep - totalPayout, 0);
+
+      const ctxBar = document.getElementById('barFinanceChart').getContext('2d');
+      if (chartFinance) chartFinance.destroy();
+      chartFinance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: ['Deposits', 'Payouts', 'Net Margin'],
+          datasets: [{
+            data: [totalDep, totalPayout, netProfit],
+            backgroundColor: ['#1565C0', '#E53935', '#2E7D32'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      const ctxDoughnut = document.getElementById('doughnutRatioChart').getContext('2d');
+      if (chartRatio) chartRatio.destroy();
+      chartRatio = new Chart(ctxDoughnut, {
+        type: 'doughnut',
+        data: {
+          labels: ['Payouts', 'Retained Net'],
+          datasets: [{
+            data: [totalPayout, netProfit],
+            backgroundColor: ['#E53935', '#1565C0']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    function renderRecentActivity() {
+      const container = document.getElementById('dashRecentActivity');
+      const list = Object.values(dataNotifications).reverse().slice(0, 8);
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><p>No activity recorded yet.</p></div>`;
+        return;
+      }
+      container.innerHTML = list.map(n => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <div style="font-weight: 600; font-size: 13px;">${escapeHtml(n.title)}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${escapeHtml(n.body)}</div>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted);">${n.sentAt ? new Date(n.sentAt).toLocaleDateString() : ''}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderMatchesTable() {
+      const tbody = document.getElementById('matchesTableBody');
+      const q = (document.getElementById('matchSearchInput').value || '').toLowerCase();
+      let matches = Object.keys(dataMatches).map(k => ({ id: k, ...dataMatches[k] }));
+
+      if (q) {
+        matches = matches.filter(m => (m.title || '').toLowerCase().includes(q));
+      }
+
+      if (!matches.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><p>No tournaments matches found</p></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = matches.map(m => {
+        let catName = 'General';
+        if (dataCategories[m.categoryId]) {
+          catName = dataCategories[m.categoryId].name;
+        } else if (m.categoryId) {
+          const foundCat = Object.values(dataCategories).find(c => (c.name || '').toLowerCase() === (m.categoryId || '').toLowerCase());
+          catName = foundCat ? foundCat.name : m.categoryId;
+        }
+        let badgeColor = 'badge-blue';
+        if (m.status === 'Ongoing') badgeColor = 'badge-orange';
+        if (m.status === 'Finished') badgeColor = 'badge-green';
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: url('${escapeHtml(m.img || '')}') center/cover; background-color: var(--bg-surface); flex-shrink:0;"></div>
+                <strong style="font-size: 13px;">${escapeHtml(m.title)}</strong>
+              </div>
+            </td>
+            <td>${escapeHtml(catName)}</td>
+            <td>${escapeHtml(m.date || '')} ${escapeHtml(m.time || '')}</td>
+            <td><span class="badge badge-blue">${escapeHtml(m.type || 'Solo')}</span> <small>${escapeHtml(m.map || '')}</small></td>
+            <td><strong>${m.joined || 0}</strong> / ${m.total_slots || 0}</td>
+            <td>
+              <span class="badge ${badgeColor}" style="cursor: pointer;" onclick="cycleMatchStatus('${m.id}', '${m.status}')">${escapeHtml(m.status)} ⟳</span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="viewParticipants('${m.id}')">Users</button>
+                <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="openRoomModal('${m.id}')">Room</button>
+                <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="openEditMatchModal('${m.id}')">Edit</button>
+                ${m.status !== 'Finished' ? `<button class="btn btn-success" style="padding: 4px 8px; font-size: 11px;" onclick="openPrizeModal('${m.id}')">Prize</button>` : ''}
+                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteMatch('${m.id}')">Del</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    async function cycleMatchStatus(matchId, currentStatus) {
+      let nextStatus = 'Ongoing';
+      let updatePayload = {};
+      if (currentStatus === 'Upcoming') {
+        nextStatus = 'Ongoing';
+        updatePayload = { status: nextStatus };
+      } else if (currentStatus === 'Ongoing') {
+        nextStatus = 'Finished';
+        updatePayload = { status: nextStatus, finishedAt: Date.now() };
+      } else if (currentStatus === 'Finished') {
+        nextStatus = 'Upcoming';
+        updatePayload = { status: nextStatus, finishedAt: null };
+      }
+
+      await db.collection('matches').doc(matchId).update(updatePayload);
+      showToast(`Match status updated to ${nextStatus}`, 'success');
+    }
+
+    function handleMatchTypeChange(type) {
+      const slotsInput = document.getElementById('mSlots');
+      if (!slotsInput) return;
+      if (type === 'Solo') slotsInput.value = 48;
+      else if (type === 'Duo') slotsInput.value = 24;
+      else if (type === 'Squad') slotsInput.value = 12;
+    }
+    function openCreateMatchModal() {
+      populateCategoryDropdown();
+      document.getElementById('modalMatchTitle').textContent = 'Create Tournament Match';
+      document.getElementById('matchEditId').value = '';
+      document.getElementById('mTitle').value = '';
+      document.getElementById('mMap').value = 'Bermuda';
+      document.getElementById('mSlots').value = '48';
+      document.getElementById('mDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mTime').value = '20:00';
+      document.getElementById('mFee').value = '20';
+      document.getElementById('mPrize').value = '500';
+      document.getElementById('mPerKill').value = '5';
+      document.getElementById('mImg').value = '';
+      document.getElementById('mRoomId').value = '';
+      document.getElementById('mRoomPass').value = '';
+      document.getElementById('mP1').value = '250';
+      document.getElementById('mP2').value = '150';
+      document.getElementById('mP3').value = '100';
+      document.getElementById('mRules').value = '';
+      document.getElementById('matchImgPreview').style.display = 'none';
+      openModal('modalMatch');
+    }
+
+    function openEditMatchModal(matchId) {
+      populateCategoryDropdown();
+      const m = dataMatches[matchId];
+      if (!m) return;
+      document.getElementById('modalMatchTitle').textContent = 'Edit Tournament Match';
+      document.getElementById('matchEditId').value = matchId;
+      document.getElementById('mTitle').value = m.title || '';
+      document.getElementById('mCategory').value = m.categoryId || '';
+      document.getElementById('mType').value = m.type || 'Solo';
+      document.getElementById('mMap').value = m.map || '';
+      document.getElementById('mSlots').value = m.total_slots || 48;
+      document.getElementById('mDate').value = m.date || '';
+      document.getElementById('mTime').value = m.time || '';
+      document.getElementById('mFee').value = m.entry_fee || 0;
+      document.getElementById('mPrize').value = m.total_prize || 0;
+      document.getElementById('mPerKill').value = m.per_kill || 0;
+      document.getElementById('mImg').value = m.img || '';
+      document.getElementById('mRoomId').value = m.room_id || '';
+      document.getElementById('mRoomPass').value = m.room_pass || '';
+      
+      const pDist = m.prize_distribution || {};
+      document.getElementById('mP1').value = pDist['1st'] || 0;
+      document.getElementById('mP2').value = pDist['2nd'] || 0;
+      document.getElementById('mP3').value = pDist['3rd'] || 0;
+      document.getElementById('mRules').value = m.rules || '';
+
+      updateMatchImgPreview(m.img);
+      openModal('modalMatch');
+    }
+
+    function updateMatchImgPreview(url) {
+      const el = document.getElementById('matchImgPreview');
+      if (url) {
+        el.style.backgroundImage = `url('${url}')`;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    async function handleSaveMatch(e) {
+      e.preventDefault();
+      const editId = document.getElementById('matchEditId').value;
+      const matchData = {
+        title: document.getElementById('mTitle').value.trim(),
+        categoryId: document.getElementById('mCategory').value,
+        type: document.getElementById('mType').value,
+        map: document.getElementById('mMap').value.trim(),
+        total_slots: Number(document.getElementById('mSlots').value),
+        date: document.getElementById('mDate').value,
+        time: document.getElementById('mTime').value,
+        entry_fee: Number(document.getElementById('mFee').value),
+        total_prize: Number(document.getElementById('mPrize').value),
+        per_kill: Number(document.getElementById('mPerKill').value),
+        img: document.getElementById('mImg').value.trim(),
+        room_id: document.getElementById('mRoomId').value.trim(),
+        room_pass: document.getElementById('mRoomPass').value.trim(),
+        prize_distribution: {
+          '1st': Number(document.getElementById('mP1').value),
+          '2nd': Number(document.getElementById('mP2').value),
+          '3rd': Number(document.getElementById('mP3').value)
+        },
+        rules: document.getElementById('mRules').value.trim()
+      };
+
+      try {
+        if (editId) {
+          await db.collection('matches').doc(editId).update(matchData);
+          showToast('Match updated!', 'success');
+        } else {
+          matchData.status = 'Upcoming';
+          matchData.joined = 0;
+          matchData.participants = {};
+          await db.collection('matches').add(matchData);
+          showToast('Match created!', 'success');
+        }
+        closeModal('modalMatch');
+      } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteMatch(matchId, isAuto = false) {
+      if (!isAuto && !confirm('আপনি কি নিশ্চিত এই ম্যাচটি মুছে ফেলতে চান? এটি মুছে দিলে প্লেয়ারদের নোটিফিকেশন হিস্টোরি থেকেও রুম আইডি রিমুভ হয়ে যাবে।')) return;
+      
+      try {
+        // ১. ম্যাচটিতে জয়েন করা সব ইউজারের তালিকা নেওয়া
+        const snap = await db.collection('match_participants').doc(matchId).get();
+        const participants = snap.exists ? snap.data() : {};
+        const participantUids = Object.keys(participants);
+
+        // ২. প্রতিটি জয়েন করা প্লেয়ারের নোটিফিকেশন থেকে এই ম্যাচের নোটিফিকেশনগুলো মুছে ফেলা
+        for (const uid of participantUids) {
+          const userNotifsSnap = await db.collection('user_notifications').doc(uid).collection('items').where('matchId', '==', matchId).get();
+          const batch = db.batch();
+          userNotifsSnap.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          // নির্দিষ্ট রুম নোটিফিকেশন রিমুভ
+          batch.delete(db.collection('user_notifications').doc(uid).collection('items').doc('room_' + matchId));
+          await batch.commit();
+        }
+
+        // ৩. ম্যাচের মূল ডাটা ও পার্টিসিপেন্ট নোড রিমুভ করা
+        await db.collection('matches').doc(matchId).delete();
+        await db.collection('match_participants').doc(matchId).delete();
+
+        if (!isAuto) {
+          showToast('ম্যাচ এবং সম্পর্কিত সকল নোটিফিকেশন সফলভাবে মুছে ফেলা হয়েছে।', 'default');
+        }
+      } catch (err) {
+        if (!isAuto) {
+          showToast('মুছতে ব্যর্থ হয়েছে: ' + err.message, 'error');
+        }
+      }
+    }
+
+    // ফিনিশড হওয়া ম্যাচ ২৪ ঘণ্টা পর অটোমেটিক ডিলিট করার ফাংশন
+    async function checkAndAutoDeleteExpiredMatches() {
+      const now = Date.now();
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+      for (const mId in dataMatches) {
+        const m = dataMatches[mId];
+        if (m.status === 'Finished' && m.finishedAt && (now - m.finishedAt >= TWENTY_FOUR_HOURS)) {
+          console.log(`[Auto Cleanup] Deleting expired match ${mId} (Finished > 24h ago)`);
+          await deleteMatch(mId, true);
+        }
+      }
+    }
+
+    async function viewParticipants(matchId) {
+      const content = document.getElementById('participantsListContent');
+      content.innerHTML = '<div class="empty-state"><p>Loading roster...</p></div>';
+      openModal('modalParticipants');
+
+      const match = dataMatches[matchId] || {};
+      const totalSlots = Number(match.total_slots) || 48;
+      const joinedSlots = Number(match.joined) || 0;
+      const remainingSlots = Math.max(totalSlots - joinedSlots, 0);
+
+      const snap = await db.collection('match_participants').doc(matchId).get();
+      const parts = snap.exists ? snap.data() : {};
+      const list = Object.keys(parts).map(k => ({ uid: k, ...parts[k] }));
+
+      // স্লট নম্বর অনুযায়ী ক্রমানুসারে সাজানো
+      list.sort((a, b) => (Number(a.slot) || 999) - (Number(b.slot) || 999));
+
+      if (!list.length) {
+        content.innerHTML = `
+          <div class="card" style="background: var(--bg-surface); padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items:center;">
+            <span>মোট স্লট: <strong>${totalSlots}</strong></span>
+            <span>খালি স্লট: <strong style="color:var(--accent-green);">${remainingSlots} টি</strong></span>
+          </div>
+          <div class="empty-state"><p>এখনো কোনো প্লেয়ার জয়েন করেনি।</p></div>
+        `;
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="card" style="background: var(--bg-surface); padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <span>ম্যাচ টাইপ: <strong class="badge badge-blue" style="font-size: 13px;">${escapeHtml(match.type || 'Solo')}</strong></span>
+            <span style="margin-left: 10px;">জয়েন করেছে: <strong>${list.length}/${totalSlots} টিম</strong></span>
+          </div>
+          <span>খালি স্লট: <strong style="color:var(--accent-green); font-size: 14px;">${remainingSlots} টি</strong></span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${list.map((p, idx) => {
+            const slotNum = p.slot || (idx + 1);
+            let playersArr = [];
+            if (Array.isArray(p.players) && p.players.length > 0) {
+              playersArr = p.players.map(pl => {
+                if (typeof pl === 'object' && pl !== null) {
+                  return { ign: pl.ign || 'N/A', gameUid: pl.gameUid || pl.uid || 'N/A', role: pl.role || '' };
+                }
+                return { ign: String(pl), gameUid: p.gameUid || 'N/A', role: '' };
+              });
+            } else {
+              playersArr = [{ ign: p.ign || 'N/A', gameUid: p.gameUid || 'N/A', role: 'Player' }];
+            }
+            const memberCount = p.playerCount || playersArr.length;
+            const squadTitle = p.matchType ? `${p.matchType} Team` : (memberCount > 1 ? `Squad Team (${memberCount} Members)` : 'Solo Player');
+
+            return `
+              <div class="card" style="border: 1.5px solid var(--border); padding: 14px; border-left: 5px solid var(--primary); box-shadow: 0 4px 14px var(--shadow);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed var(--border); padding-bottom: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge badge-orange" style="font-size: 14px; font-weight: 800; padding: 4px 10px; font-family: 'Rajdhani', sans-serif;">SLOT #${slotNum}</span>
+                    <span class="badge badge-blue" style="font-size: 12px; font-weight: 700;">🛡️ ${escapeHtml(squadTitle)} - [${memberCount} জন প্লেয়ার]</span>
+                  </div>
+                  <button class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;" onclick="kickParticipant('${matchId}', '${p.uid}')">Kick & Refund</button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                  ${playersArr.map((pl, pi) => `
+                    <div style="background: var(--bg-surface); border: 1.5px solid #DCE6F5; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 4px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PLAYER ${pi + 1} ${pl.role ? '(' + escapeHtml(pl.role) + ')' : ''}</span>
+                        <span style="font-size: 11px; color: var(--primary); font-weight: 700;">🎮 IGN</span>
+                      </div>
+                      <div style="font-size: 16px; font-weight: 800; color: var(--primary-dark); font-family: 'Rajdhani', sans-serif; letter-spacing: 0.5px; word-break: break-word;">
+                        ${escapeHtml(pl.ign)}
+                      </div>
+                      <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; margin-top: 4px;">
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">GAME UID:</span>
+                        <span style="font-size: 12px; font-weight: 800; font-family: 'Rajdhani', sans-serif; color: var(--accent-orange); letter-spacing: 0.5px;">${escapeHtml(pl.gameUid)}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); padding-top: 4px;">
+                  <span>বুকিং ইউজার: <strong>${escapeHtml(p.username || 'User')}</strong> ${p.phone ? `(${escapeHtml(p.phone)})` : ''}</span>
+                  <span>${p.joinedAt ? new Date(p.joinedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function kickParticipant(matchId, uid) {
+      if (!confirm('Refund entry fee and remove participant?')) return;
+      const match = dataMatches[matchId] || {};
+      const fee = Number(match.entry_fee) || 0;
+
+      try {
+        await db.collection('match_participants').doc(matchId).update({
+          [uid]: firebase.firestore.FieldValue.delete()
+        });
+        await db.collection('matches').doc(matchId).update({
+          [`participants.${uid}`]: firebase.firestore.FieldValue.delete(),
+          joined: Math.max((match.joined || 1) - 1, 0)
+        });
+
+        const userSnap = await db.collection('users').doc(uid).get();
+        const u = userSnap.exists ? userSnap.data() : {};
+        await db.collection('users').doc(uid).update({
+          deposit: (u.deposit || 0) + fee
+        });
+
+        await db.collection('transactions').doc(uid).collection('items').add({
+          type: 'refund',
+          amount: fee,
+          description: `Refunded for kick from ${match.title || 'Tournament'}`,
+          status: 'completed',
+          date: Date.now()
+        });
+
+        // কিক করা ইউজারের ব্যক্তিগত নোটিফিকেশন তালিকা থেকে রুম আইডি মুছে ফেলা
+        const userNotifsSnap = await db.collection('user_notifications').doc(uid).collection('items').where('matchId', '==', matchId).get();
+        const batch = db.batch();
+        userNotifsSnap.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        await batch.commit();
+
+        showToast('Participant removed and entry fee refunded.', 'success');
+        viewParticipants(matchId);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function openRoomModal(matchId) {
+      const m = dataMatches[matchId];
+      document.getElementById('roomMatchId').value = matchId;
+      document.getElementById('roomInputId').value = m ? (m.room_id || '') : '';
+      document.getElementById('roomInputPass').value = m ? (m.room_pass || '') : '';
+      openModal('modalRoom');
+    }
+
+    async function handleSaveRoom(e) {
+      e.preventDefault();
+      const matchId = document.getElementById('roomMatchId').value;
+      const rId = document.getElementById('roomInputId').value.trim();
+      const rPass = document.getElementById('roomInputPass').value.trim();
+
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Broadcasting to Participants...";
+      }
+
+      try {
+        await db.collection('matches').doc(matchId).update({
+          room_id: rId,
+          room_pass: rPass
+        });
+
+        const matchTitle = (dataMatches[matchId] && dataMatches[matchId].title) 
+          ? dataMatches[matchId].title 
+          : 'ট্যুরনামেন্ট ম্যাচ';
+
+        // ম্যাচে জয়েন করা ইউজারদের বের করা
+        const snap = await db.collection('match_participants').doc(matchId).get();
+        const participants = snap.exists ? snap.data() : {};
+        const participantUids = Object.keys(participants);
+
+        if (participantUids.length === 0) {
+          showToast('রুম ক্রেডেনশিয়াল আপডেট হয়েছে (কোনো জয়েন করা প্লেয়ার নেই)', 'warning');
+          closeModal('modalRoom');
+          return;
+        }
+
+        const notifPayload = {
+          title: `🔑 রুম আইডি ও পাসওয়ার্ড দেওয়া হয়েছে!`,
+          body: `${matchTitle}-এর রুম আইডি: ${rId} এবং পাসওয়ার্ড: ${rPass}। এখনই রুমে প্রবেশ করুন!`,
+          matchId: matchId,
+          type: 'room_credentials',
+          sentAt: Date.now()
+        };
+
+        const batch = db.batch();
+        participantUids.forEach(uid => {
+          // নির্দিষ্ট ফিক্সড আইডি 'room_' + matchId ব্যবহার করা হয়েছে যাতে অ্যাডমিন বারবার আপডেট করলেও
+          // প্রথম নোটিফিকেশনটিই ওভাররাইট/আপডেট হবে এবং কোনো নতুন ডুপ্লিকেট নোটিফিকেশন তৈরি হবে না
+          const docRef = db.collection('user_notifications').doc(uid).collection('items').doc('room_' + matchId);
+          batch.set(docRef, notifPayload, { merge: true });
+        });
+
+        await batch.commit();
+
+        closeModal('modalRoom');
+        showToast(`সফলভাবে ${participantUids.length} জন জয়েন করা প্লেয়ারের কাছে নোটিফিকেশন পাঠানো হয়েছে!`, 'success');
+      } catch (err) {
+        showToast('ব্যর্থ হয়েছে: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "Broadcast Room Credentials";
+        }
+      }
+    }
+
+    async function openPrizeModal(matchId) {
+      document.getElementById('prizeMatchId').value = matchId;
+      const snap = await db.collection('match_participants').doc(matchId).get();
+      const parts = snap.exists ? snap.data() : {};
+      const options = Object.keys(parts).map(k => `<option value="${k}">${escapeHtml((parts[k].slot ? 'Slot #' + parts[k].slot + ': ' : '') + (parts[k].ign || parts[k].username || k))}</option>`).join('');
+
+      const sel1 = document.getElementById('prizeWinner1');
+      const sel2 = document.getElementById('prizeWinner2');
+      const sel3 = document.getElementById('prizeWinner3');
+
+      sel1.innerHTML = `<option value="">Select 1st Place</option>` + options;
+      sel2.innerHTML = `<option value="">Select 2nd Place (Optional)</option>` + options;
+      sel3.innerHTML = `<option value="">Select 3rd Place (Optional)</option>` + options;
+
+      openModal('modalPrize');
+    }
+
+    async function handleDistributePrizes(e) {
+      e.preventDefault();
+      const matchId = document.getElementById('prizeMatchId').value;
+      const m = dataMatches[matchId] || {};
+      const pDist = m.prize_distribution || {};
+
+      const w1 = document.getElementById('prizeWinner1').value;
+      const w2 = document.getElementById('prizeWinner2').value;
+      const w3 = document.getElementById('prizeWinner3').value;
+
+      if (!w1) {
+        showToast('Please select at least 1st place winner.', 'warning');
+        return;
+      }
+
+      try {
+        const awards = [
+          { uid: w1, rank: 1, amt: Number(pDist['1st']) || 0 },
+          { uid: w2, rank: 2, amt: Number(pDist['2nd']) || 0 },
+          { uid: w3, rank: 3, amt: Number(pDist['3rd']) || 0 }
+        ];
+
+        for (const a of awards) {
+          if (a.uid && a.amt > 0) {
+            await db.collection('match_participants').doc(matchId).update({
+              [`${a.uid}.result`]: a.rank,
+              [`${a.uid}.prize_earned`]: a.amt
+            });
+
+            const userSnap = await db.collection('users').doc(a.uid).get();
+            const u = userSnap.exists ? userSnap.data() : {};
+            await db.collection('users').doc(a.uid).update({
+              winning: (u.winning || 0) + a.amt
+            });
+
+            await db.collection('transactions').doc(a.uid).collection('items').add({
+              type: 'prize',
+              amount: a.amt,
+              description: `Won Rank #${a.rank} in ${m.title || 'Tournament'}`,
+              status: 'completed',
+              date: Date.now()
+            });
+          }
+        }
+
+        await db.collection('matches').doc(matchId).update({ status: 'Finished', finishedAt: Date.now() });
+        closeModal('modalPrize');
+        showToast('Prizes distributed and match finalized!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('adminCatGrid');
+      const cats = Object.keys(dataCategories).map(k => ({ id: k, ...dataCategories[k] }));
+
+      if (!cats.length) {
+        container.innerHTML = `<div class="empty-state"><p>No categories created</p></div>`;
+        return;
+      }
+
+      container.innerHTML = cats.map(c => `
+        <div class="card" style="padding: 12px; position: relative;">
+          <div style="height: 100px; border-radius: 10px; background: url('${escapeHtml(c.img || '')}') center/cover; margin-bottom: 8px;"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 14px;">${escapeHtml(c.name)}</strong>
+            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteCategory('${c.id}')"><i data-lucide="trash-2"></i></button>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function populateCategoryDropdown() {
+      const sel = document.getElementById('mCategory');
+      sel.innerHTML = Object.keys(dataCategories).map(k => `<option value="${k}">${escapeHtml(dataCategories[k].name)}</option>`).join('');
+    }
+
+    async function handleAddCategory(e) {
+      e.preventDefault();
+      const name = document.getElementById('catNameInput').value.trim();
+      const img = document.getElementById('catImgInput').value.trim();
+      try {
+        await db.collection('categories').add({ name, img, order: Date.now() });
+        closeModal('modalCategory');
+        showToast('Category created!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteCategory(catId) {
+      if (!confirm('Delete this category?')) return;
+      await db.collection('categories').doc(catId).delete();
+      showToast('Category removed.', 'default');
+    }
+
+    function renderSliders() {
+      const container = document.getElementById('adminSliderList');
+      const sliders = Object.keys(dataSliders).map(k => ({ id: k, ...dataSliders[k] }));
+
+      if (!sliders.length) {
+        container.innerHTML = `<div class="empty-state"><p>No sliders available</p></div>`;
+        return;
+      }
+
+      container.innerHTML = sliders.map(s => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding: 12px;">
+          <div style="display:flex; align-items:center; gap: 14px;">
+            <div style="width: 100px; height: 50px; border-radius: 8px; background: url('${escapeHtml(s.img || '')}') center/cover;"></div>
+            <span style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(s.link || 'No URL')}</span>
+          </div>
+          <button class="btn btn-danger" style="padding: 6px 10px;" onclick="deleteSlider('${s.id}')"><i data-lucide="trash-2"></i></button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function handleAddSlider(e) {
+      e.preventDefault();
+      const img = document.getElementById('sliderImgInput').value.trim();
+      const link = document.getElementById('sliderLinkInput').value.trim();
+      try {
+        await db.collection('sliders').add({ img, link, order: Date.now() });
+        closeModal('modalSlider');
+        showToast('Slider banner added!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteSlider(id) {
+      if (!confirm('Delete this banner?')) return;
+      await db.collection('sliders').doc(id).delete();
+      showToast('Slider deleted.', 'default');
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      const q = (document.getElementById('userSearchInput').value || '').toLowerCase();
+      const filter = document.getElementById('userFilterSelect').value;
+
+      let users = Object.keys(dataUsers).map(k => ({ uid: k, ...dataUsers[k] }));
+
+      if (q) {
+        users = users.filter(u => 
+          (u.username || '').toLowerCase().includes(q) ||
+          (u.email || '').toLowerCase().includes(q) ||
+          (u.phone || '').includes(q)
+        );
+      }
+
+      if (filter === 'active') users = users.filter(u => !u.banned);
+      if (filter === 'banned') users = users.filter(u => u.banned);
+
+      if (!users.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state"><p>No users found</p></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td><strong>${escapeHtml(u.username || 'User')}</strong></td>
+          <td>${escapeHtml(u.email || 'N/A')}</td>
+          <td>${escapeHtml(u.phone || 'N/A')}</td>
+          <td style="color: var(--primary);">৳${u.deposit || 0}</td>
+          <td style="color: var(--accent-green);">৳${u.winning || 0}</td>
+          <td>
+            <span class="badge ${u.banned ? 'badge-red' : 'badge-green'}">${u.banned ? 'Banned' : 'Active'}</span>
+          </td>
+          <td>${u.joinedAt ? new Date(u.joinedAt).toLocaleDateString() : ''}</td>
+          <td>
+            <div style="display:flex; gap: 6px;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="openBalanceModal('${u.uid}')">Balance</button>
+              <button class="btn ${u.banned ? 'btn-success' : 'btn-danger'}" style="padding: 4px 8px; font-size: 11px;" onclick="toggleBanUser('${u.uid}', ${u.banned})">
+                ${u.banned ? 'Unban' : 'Ban'}
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function toggleBanUser(uid, isBanned) {
+      const confirmMsg = isBanned ? 'Unban this user?' : 'Ban this user from logging in?';
+      if (!confirm(confirmMsg)) return;
+      await db.collection('users').doc(uid).update({ banned: !isBanned });
+      showToast(isBanned ? 'User unbanned' : 'User banned', 'default');
+    }
+
+    function openBalanceModal(uid) {
+      document.getElementById('balUserId').value = uid;
+      document.getElementById('balAmount').value = '';
+      document.getElementById('balReason').value = '';
+      openModal('modalUserBalance');
+    }
+
+    async function handleAdjustBalance(e) {
+      e.preventDefault();
+      const uid = document.getElementById('balUserId').value;
+      const target = document.getElementById('balTargetWallet').value;
+      const action = document.getElementById('balActionType').value;
+      const amt = Number(document.getElementById('balAmount').value);
+      const reason = document.getElementById('balReason').value.trim();
+
+      const u = dataUsers[uid] || {};
+      const curBal = Number(u[target]) || 0;
+      let newBal = curBal;
+
+      if (action === 'add') newBal += amt;
+      else newBal = Math.max(curBal - amt, 0);
+
+      try {
+        await db.collection('users').doc(uid).update({ [target]: newBal });
+
+        await db.collection('transactions').doc(uid).collection('items').add({
+          type: action === 'add' ? 'deposit' : 'withdrawal',
+          amount: amt,
+          description: `Admin adjustment (${target}): ${reason}`,
+          status: 'completed',
+          date: Date.now()
+        });
+
+        closeModal('modalUserBalance');
+        showToast('Balance updated successfully!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    let activeWdFilter = 'all';
+    function filterWithdrawals(filter, btn) {
+      activeWdFilter = filter;
+      document.querySelectorAll('#secWithdrawals .btn-secondary').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderWithdrawalsTable();
+    }
+
+    function renderWithdrawalsTable() {
+      const tbody = document.getElementById('withdrawTableBody');
+      let wds = Object.keys(dataWithdrawals).map(k => ({ id: k, ...dataWithdrawals[k] })).reverse();
+
+      if (activeWdFilter !== 'all') {
+        wds = wds.filter(w => w.status === activeWdFilter);
+      }
+
+      if (!wds.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><p>No withdrawal requests</p></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = wds.map(w => {
+        let badgeColor = 'badge-orange';
+        if (w.status === 'completed') badgeColor = 'badge-green';
+        if (w.status === 'rejected') badgeColor = 'badge-red';
+
+        return `
+          <tr>
+            <td><strong>${escapeHtml(w.username || 'User')}</strong></td>
+            <td style="font-weight: 700; color: var(--accent-red);">৳${w.amount || 0}</td>
+            <td><span class="badge badge-blue">${escapeHtml(w.method)}</span></td>
+            <td><strong>${escapeHtml(w.number)}</strong></td>
+            <td>${w.requestedAt ? new Date(w.requestedAt).toLocaleString() : ''}</td>
+            <td><span class="badge ${badgeColor}">${escapeHtml(w.status)}</span></td>
+            <td>
+              ${w.status === 'pending' ? `
+                <div style="display:flex; gap: 6px;">
+                  <button class="btn btn-success" style="padding: 4px 8px; font-size: 11px;" onclick="approveWithdrawal('${w.id}')">Approve</button>
+                  <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="rejectWithdrawal('${w.id}')">Reject</button>
+                </div>
+              ` : `<small style="color:var(--text-muted);">${w.processedAt ? new Date(w.processedAt).toLocaleDateString() : 'Processed'}</small>`}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function approveWithdrawal(wdId) {
+      if (!confirm('Approve this withdrawal? (Ensure you have sent funds)')) return;
+      try {
+        await db.collection('withdrawals').doc(wdId).update({
+          status: 'completed',
+          processedAt: Date.now()
+        });
+        const w = dataWithdrawals[wdId];
+        if (w && w.uid) {
+          await db.collection('transactions').doc(w.uid).collection('items').doc(wdId).update({ status: 'completed' });
+        }
+        showToast('Withdrawal marked as completed!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function rejectWithdrawal(wdId) {
+      if (!confirm('Reject withdrawal and refund balance to winning wallet?')) return;
+      const w = dataWithdrawals[wdId];
+      if (!w) return;
+      try {
+        await db.collection('withdrawals').doc(wdId).update({
+          status: 'rejected',
+          processedAt: Date.now()
+        });
+
+        const userSnap = await db.collection('users').doc(w.uid).get();
+        const u = userSnap.exists ? userSnap.data() : {};
+        await db.collection('users').doc(w.uid).update({ winning: (u.winning || 0) + Number(w.amount) });
+
+        await db.collection('transactions').doc(w.uid).collection('items').doc(wdId).update({ status: 'rejected' });
+        showToast('Withdrawal rejected and funds refunded.', 'default');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function renderDepositsTable() {
+      const tbody = document.getElementById('depositsTableBody');
+      const q = (document.getElementById('depositSearchInput').value || '').toLowerCase();
+      let deposits = Object.keys(dataAutoPay).map(k => ({ txid: k, ...dataAutoPay[k] })).reverse();
+
+      if (q) {
+        deposits = deposits.filter(d => d.txid.toLowerCase().includes(q) || (d.username && d.username.toLowerCase().includes(q)) || (d.userPhone && d.userPhone.includes(q)));
+      }
+
+      if (!deposits.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><p>No Deposit records found</p></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = deposits.map(d => {
+        const isPending = d.status === 'pending';
+        const isCompleted = d.status === 'completed' || d.usedBy;
+        const isRejected = d.status === 'rejected';
+
+        let badgeHtml = '<span class="badge badge-blue">Available</span>';
+        if (isPending) badgeHtml = '<span class="badge badge-orange">Pending</span>';
+        else if (isCompleted) badgeHtml = '<span class="badge badge-green">Success</span>';
+        else if (isRejected) badgeHtml = '<span class="badge badge-red">Rejected</span>';
+
+        const userDetails = d.userPhone ? `${escapeHtml(d.username || 'User')} (${escapeHtml(d.userPhone)})` : (d.usedBy ? escapeHtml(d.usedBy) : 'Admin Added');
+
+        return `
+          <tr>
+            <td><strong style="font-family:'Rajdhani',sans-serif; font-size:15px;">${escapeHtml(d.txid)}</strong></td>
+            <td style="font-weight:700; color:var(--accent-green);">৳${d.amount}</td>
+            <td><span class="badge badge-blue">${escapeHtml(d.method || 'Manual')}</span></td>
+            <td>${userDetails}</td>
+            <td>${d.addedAt ? new Date(d.addedAt).toLocaleString() : 'N/A'}</td>
+            <td>${badgeHtml}</td>
+            <td>
+              <div style="display:flex; gap: 6px;">
+                ${isPending ? `
+                  <button class="btn btn-success" style="padding: 4px 8px; font-size: 11px;" onclick="approveDeposit('${d.txid}')">Approve</button>
+                  <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="rejectDeposit('${d.txid}')">Reject</button>
+                ` : ''}
+                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteTrxId('${d.txid}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function approveDeposit(txid) {
+      const deposit = dataAutoPay[txid];
+      if (!deposit) return;
+
+      if (!confirm(`আপনি কি নিশ্চিত TrxID: ${txid} এর ৳${deposit.amount} ডিপোজিট Approve করতে চান?`)) return;
+
+      try {
+        const uid = deposit.userUid;
+        const amt = Number(deposit.amount);
+
+        const userSnap = await db.collection('users').doc(uid).get();
+        const userData = userSnap.exists ? userSnap.data() : {};
+        const newDep = (Number(userData.deposit) || 0) + amt;
+        const newTotalDep = (Number(userData.totalDeposited) || 0) + amt;
+
+        await db.collection('users').doc(uid).update({
+          deposit: newDep,
+          totalDeposited: newTotalDep
+        });
+
+        await db.collection('Auto_Pay').doc(txid).update({
+          status: 'completed',
+          usedBy: uid,
+          processedAt: Date.now()
+        });
+
+        await db.collection('transactions').doc(uid).collection('items').doc(txid).update({
+          status: 'completed',
+          processedAt: Date.now()
+        });
+
+        showToast(`৳${amt} সফলভাবে অনুমোদিত এবং ইউজারের একাউন্টে যোগ করা হয়েছে!`, 'success');
+      } catch (err) {
+        showToast('Approve করতে ব্যর্থ হয়েছে: ' + err.message, 'error');
+      }
+    }
+
+    async function rejectDeposit(txid) {
+      const deposit = dataAutoPay[txid];
+      if (!deposit) return;
+
+      if (!confirm(`আপনি কি এই ডিপোজিট রিকোয়েস্টটি Reject করতে চান?`)) return;
+
+      try {
+        const uid = deposit.userUid;
+
+        await db.collection('Auto_Pay').doc(txid).update({
+          status: 'rejected',
+          processedAt: Date.now()
+        });
+
+        if (uid) {
+          await db.collection('transactions').doc(uid).collection('items').doc(txid).update({
+            status: 'rejected',
+            processedAt: Date.now()
+          });
+        }
+
+        showToast('ডিপোজিট রিকোয়েস্ট বাতিল করা হয়েছে।', 'default');
+      } catch (err) {
+        showToast('Reject করতে ব্যর্থ হয়েছে: ' + err.message, 'error');
+      }
+    }
+
+    async function handleAddTrx(e) {
+      e.preventDefault();
+      const txid = document.getElementById('newTrxId').value.trim().toUpperCase();
+      const amt = Number(document.getElementById('newTrxAmount').value);
+
+      try {
+        await db.collection('Auto_Pay').doc(txid).set({
+          amount: amt,
+          status: 'available',
+          usedBy: null,
+          usedAt: null,
+          addedBy: 'Admin',
+          addedAt: Date.now()
+        });
+        closeModal('modalAddTrx');
+        showToast(`TrxID ${txid} added for ৳${amt}`, 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteTrxId(txid) {
+      if (!confirm(`আপনি কি নিশ্চিত ${txid} ট্রানজেকশন রেকর্ডটি মুছে ফেলতে চান? (ইউজারের ব্যালেন্স অক্ষত থাকবে)`)) return;
+      try {
+        await db.collection('Auto_Pay').doc(txid).delete();
+        showToast('TrxID রেকর্ডটি মুছে ফেলা হয়েছে।', 'default');
+      } catch (err) {
+        showToast('মুছতে ব্যর্থ হয়েছে: ' + err.message, 'error');
+      }
+    }
+
+    async function handleSendNotification(e) {
+      e.preventDefault();
+      const title = document.getElementById('notifTitle').value.trim();
+      const body = document.getElementById('notifBody').value.trim();
+
+      try {
+        await db.collection('notifications').add({
+          title,
+          body,
+          sentAt: Date.now()
+        });
+        document.getElementById('notifTitle').value = '';
+        document.getElementById('notifBody').value = '';
+        showToast('Notification broadcast sent!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function renderNotifHistory() {
+      const container = document.getElementById('adminNotifHistory');
+      const list = Object.keys(dataNotifications).map(k => ({ id: k, ...dataNotifications[k] })).reverse();
+
+      if (!list.length) {
+        container.innerHTML = `<div class="empty-state"><p>No broadcast history</p></div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(n => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid var(--border);">
+          <div>
+            <strong style="font-size: 13px;">${escapeHtml(n.title)}</strong>
+            <p style="font-size: 12px; color: var(--text-secondary);">${escapeHtml(n.body)}</p>
+          </div>
+          <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteNotification('${n.id}')">Del</button>
+        </div>
+      `).join('');
+    }
+
+    async function deleteNotification(id) {
+      await db.collection('notifications').doc(id).delete();
+      showToast('Notification removed.', 'default');
+    }
+
+    async function handleSaveAnnouncement(e) {
+      e.preventDefault();
+      const active = document.getElementById('announcementActive').checked;
+      const title = document.getElementById('adminAnnTitle').value.trim();
+      const body = document.getElementById('adminAnnBody').value.trim();
+
+      try {
+        await db.collection('app_settings').doc('config').set({
+          announcement: { active, title, body }
+        }, { merge: true });
+        showToast('Announcement popup configured!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function updateAppStats() {
+      let rev = 0;
+      Object.values(dataUsers).forEach(u => { rev += (Number(u.totalDeposited) || Number(u.deposit) || 0); });
+      let payout = 0;
+      Object.values(dataWithdrawals).forEach(w => { if (w.status === 'completed') payout += Number(w.amount) || 0; });
+      let joins = 0;
+      Object.values(dataMatches).forEach(m => { joins += (m.joined || 0); });
+
+      document.getElementById('statRev').textContent = '৳' + rev;
+      document.getElementById('statPayout').textContent = '৳' + payout;
+      document.getElementById('statNetProfit').textContent = '৳' + Math.max(rev - payout, 0);
+      document.getElementById('statJoins').textContent = joins;
+
+      const ctxTrend = document.getElementById('lineTrendChart').getContext('2d');
+      if (chartTrend) chartTrend.destroy();
+      chartTrend = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: ['W1', 'W2', 'W3', 'W4'],
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [rev * 0.2, rev * 0.4, rev * 0.7, rev],
+              borderColor: '#1565C0',
+              tension: 0.3
+            },
+            {
+              label: 'Payouts',
+              data: [payout * 0.15, payout * 0.35, payout * 0.65, payout],
+              borderColor: '#E53935',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true
+        }
+      });
+    }
+
+    function populateSettings() {
+      document.getElementById('setBkash').value = dataSettings.bkash_number || '';
+      document.getElementById('setNagad').value = dataSettings.nagad_number || '';
+      document.getElementById('setRocket').value = dataSettings.rocket_number || '';
+      document.getElementById('setMinDep').value = dataSettings.min_deposit || 10;
+      document.getElementById('setMinWd').value = dataSettings.min_withdraw || 50;
+
+      document.getElementById('setAppName').value = dataSettings.app_name || 'RDX BD Tour';
+      document.getElementById('setAppTagline').value = dataSettings.app_tagline || '';
+      document.getElementById('setSupportLink').value = dataSettings.support_link || '';
+      document.getElementById('setNotice').value = dataSettings.notice || '';
+
+      document.getElementById('setHowToAdd').value = dataSettings.how_to_add_money_link || '';
+      document.getElementById('setHowToRoom').value = dataSettings.how_to_get_room_id_link || '';
+      document.getElementById('setHowToPlay').value = dataSettings.how_to_play_link || '';
+
+      document.getElementById('setRefReferrer').value = dataSettings.refer_bonus_referrer || 10;
+      document.getElementById('setRefReferee').value = dataSettings.refer_bonus_referee || 5;
+      document.getElementById('setMaintenance').checked = !!dataSettings.maintenance_mode;
+
+      if (dataSettings.announcement) {
+        document.getElementById('announcementActive').checked = !!dataSettings.announcement.active;
+        document.getElementById('adminAnnTitle').value = dataSettings.announcement.title || '';
+        document.getElementById('adminAnnBody').value = dataSettings.announcement.body || '';
+      }
+    }
+
+    async function saveAllSettings() {
+      const updates = {
+        bkash_number: document.getElementById('setBkash').value.trim(),
+        nagad_number: document.getElementById('setNagad').value.trim(),
+        rocket_number: document.getElementById('setRocket').value.trim(),
+        min_deposit: Number(document.getElementById('setMinDep').value),
+        min_withdraw: Number(document.getElementById('setMinWd').value),
+        app_name: document.getElementById('setAppName').value.trim(),
+        app_tagline: document.getElementById('setAppTagline').value.trim(),
+        support_link: document.getElementById('setSupportLink').value.trim(),
+        notice: document.getElementById('setNotice').value.trim(),
+        how_to_add_money_link: document.getElementById('setHowToAdd').value.trim(),
+        how_to_get_room_id_link: document.getElementById('setHowToRoom').value.trim(),
+        how_to_play_link: document.getElementById('setHowToPlay').value.trim(),
+        refer_bonus_referrer: Number(document.getElementById('setRefReferrer').value),
+        refer_bonus_referee: Number(document.getElementById('setRefReferee').value),
+        maintenance_mode: document.getElementById('setMaintenance').checked
+      };
+
+      try {
+        await db.collection('app_settings').doc('config').set(updates, { merge: true });
+        showToast('Application settings saved successfully!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function handleChangeAdminPassword(e) {
+      e.preventDefault();
+      const p1 = document.getElementById('newAdminPass').value;
+      const p2 = document.getElementById('confirmAdminPass').value;
+
+      if (p1 !== p2) {
+        showToast('Passwords do not match.', 'error');
+        return;
+      }
+      if (p1.length < 8) {
+        showToast('Password must be at least 8 characters.', 'warning');
+        return;
+      }
+
+      try {
+        if (auth.currentUser) {
+          await auth.currentUser.updatePassword(p1);
+        }
+        // Never store plaintext passwords in Firestore. Firebase Authentication is the password store.
+        document.getElementById('newAdminPass').value = '';
+        document.getElementById('confirmAdminPass').value = '';
+        showToast('Administrator password updated successfully!', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
