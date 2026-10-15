@@ -1196,16 +1196,29 @@
       const sessionToken = sessionStorage.getItem('admin_auth_token');
       if (user && (sessionToken === 'active_session' || sessionToken === 'secret_granted')) {
         try {
-          // Firebase Rules দিয়ে অ্যাডমিন অধিকার সার্ভার থেকে যাচাই
+          // Refresh the ID token so recently verified email claims are current.
+          await user.getIdToken(true);
+          await user.reload();
+          if ((user.email || '').toLowerCase() !== 'jubayed@gmail.com' || !user.emailVerified) {
+            throw new Error('ADMIN_IDENTITY_NOT_VERIFIED');
+          }
+          // Firestore Rules remain the authoritative authorization check.
           await db.collection('admin_credentials').doc('auth').get();
           document.getElementById('adminLoginGate').style.display = 'none';
           document.getElementById('adminUserBadge').innerText = user.email || 'Admin';
           loadAllData();
           return;
         } catch (err) {
-          console.warn("Rules authorization failed:", err);
+          console.error('Admin session authorization failed:', err.code || '', err.message || err);
           sessionStorage.removeItem('admin_auth_token');
           await auth.signOut();
+          if (err.message === 'ADMIN_IDENTITY_NOT_VERIFIED') {
+            showToast('Admin email must be jubayed@gmail.com and verified in Firebase Authentication.', 'error');
+          } else if (err.code === 'permission-denied') {
+            showToast('Firestore rejected admin access. Check the published Rules and refresh the ID token.', 'error');
+          } else {
+            showToast('Admin verification failed. Check browser console for the exact error.', 'error');
+          }
         }
       }
       document.getElementById('adminLoginGate').style.display = 'flex';
@@ -1226,7 +1239,14 @@
         // ১. Firebase Authentication এর মাধ্যমে লগইন
         const userCred = await auth.signInWithEmailAndPassword(email, pass);
 
-        // ২. Firebase Rules অনুযায়ী এই অ্যাকাউন্ট অ্যাডমিন কিনা সরাসরি সার্ভার থেকে যাচাই
+        // Refresh claims after sign-in; email verification may have changed since the token was issued.
+        await userCred.user.reload();
+        await userCred.user.getIdToken(true);
+        if ((userCred.user.email || '').toLowerCase() !== 'jubayed@gmail.com' || !userCred.user.emailVerified) {
+          throw new Error('ADMIN_IDENTITY_NOT_VERIFIED');
+        }
+
+        // Firestore Rules are the authoritative admin check; this read must be allowed by published Rules.
         await db.collection('admin_credentials').doc('auth').get();
 
         sessionStorage.setItem('admin_auth_token', 'active_session');
@@ -1249,9 +1269,12 @@
           setTimeout(() => box.style.animation = '', 450);
         }
 
-        let errMsg = err.message;
-        if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
-          errMsg = 'Access Denied: আপনার ইমেইলটি Firebase Rules-এ অ্যাডমিন হিসেবে অনুমোদিত নয়!';
+        console.error('Admin login failed:', err.code || '', err.message || err);
+        let errMsg = err.message || 'Admin login failed.';
+        if (err.message === 'ADMIN_IDENTITY_NOT_VERIFIED') {
+          errMsg = 'Admin হিসেবে jubayed@gmail.com এবং verified email প্রয়োজন।';
+        } else if (err.code === 'permission-denied' || (err.message && err.message.toLowerCase().includes('permission'))) {
+          errMsg = 'Firestore Permission Denied: published Rules, project ID এবং admin email claim যাচাই করুন।';
         } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
           errMsg = 'ভুল ইমেইল বা পাসওয়ার্ড! Firebase Authentication-এর সঠিক তথ্য দিন।';
         }
