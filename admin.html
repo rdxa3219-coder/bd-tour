@@ -1202,8 +1202,8 @@
           if ((user.email || '').toLowerCase() !== 'jubayed@gmail.com' || !user.emailVerified) {
             throw new Error('ADMIN_IDENTITY_NOT_VERIFIED');
           }
-          // Firestore Rules remain the authoritative authorization check.
-          await db.collection('admin_credentials').doc('auth').get();
+          // Do not depend on an admin_credentials/auth document.
+          // Firestore Security Rules must independently authorize every protected read/write.
           document.getElementById('adminLoginGate').style.display = 'none';
           document.getElementById('adminUserBadge').innerText = user.email || 'Admin';
           loadAllData();
@@ -1246,8 +1246,8 @@
           throw new Error('ADMIN_IDENTITY_NOT_VERIFIED');
         }
 
-        // Firestore Rules are the authoritative admin check; this read must be allowed by published Rules.
-        await db.collection('admin_credentials').doc('auth').get();
+        // Do not require an admin_credentials/auth document. Firestore Rules must
+        // independently authorize every protected read/write.
 
         sessionStorage.setItem('admin_auth_token', 'active_session');
 
